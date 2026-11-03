@@ -125,7 +125,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         });
 
     pull(false);
-    const timer = setInterval(() => pull(true), 60_000);
+    const timer = setInterval(() => pull(true), 30_000);
     const onVisible = () => {
       if (document.visibilityState === "visible") pull(true);
     };

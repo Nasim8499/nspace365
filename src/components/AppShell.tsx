@@ -25,7 +25,7 @@ function Screen() {
   return (
     <div className="flex h-dvh flex-col bg-white">
       <TopBar onOpenSettings={() => setSettingsOpen(true)} />
-      <main className={`relative min-h-0 flex-1 ${isChat ? "overflow-hidden" : "overflow-y-auto overscroll-contain"}`}>
+      <main className={`relative min-h-0 flex-1 scroll-smooth ${isChat ? "overflow-hidden" : "overflow-y-auto overscroll-y-contain"}`}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={view}
@@ -33,7 +33,7 @@ function Screen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={isChat ? "h-full" : "mx-auto max-w-6xl px-4 pb-safe md:px-8 lg:pl-[120px]"}
+            className={isChat ? "h-full" : "mx-auto max-w-6xl px-4 pb-[calc(var(--safe-bottom)+6rem)] md:px-8 lg:pl-[120px]"}
           >
             {loading && !isChat ? (
               <div className="space-y-4 pt-8">

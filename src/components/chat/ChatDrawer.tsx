@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, GitBranch, MessageSquare, Pin, PinOff, SquarePen, Trash2, X } from "lucide-react";
+import { Check, GitBranch, MessageSquare, Pin, PinOff, Search, SquarePen, Trash2, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useStore } from "@/components/store";
 import AppIcon from "@/components/ui/AppIcon";
 import { timeAgo } from "@/lib/format";
@@ -24,6 +25,11 @@ export default function ChatDrawer({
   const repos = apps.filter((a) => a.source === "github");
   const active = sessions.find((s) => s.id === activeId);
   const activeRepo = repos.find((r) => r.id === active?.pinnedRepoId);
+  const [q, setQ] = useState("");
+  const filtered = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    return t ? repos.filter((r) => `${r.name} ${r.meta.fullName ?? ""} ${r.genre}`.toLowerCase().includes(t)) : repos;
+  }, [q, repos]);
   const sorted = [...sessions].sort((a, b) => Number(b.pinned) - Number(a.pinned) || +new Date(b.updatedAt) - +new Date(a.updatedAt));
 
   return (
@@ -65,18 +71,24 @@ export default function ChatDrawer({
                 </div>
               </div>
 
-              {/* pinned repos */}
-              <p className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-wider text-[#8E8E93]">Pinned repos</p>
+              {/* projects */}
+              <p className="mb-1.5 flex items-center justify-between px-1 text-[11px] font-bold uppercase tracking-wider text-[#8E8E93]">
+                <span>Projects</span><span className="text-[10px] font-semibold text-[#34C759]">{repos.length} live</span>
+              </p>
+              <div className="mb-2 flex items-center gap-2 rounded-xl bg-[#F2F2F7] px-2.5">
+                <Search size={14} className="shrink-0 text-[#8E8E93]" />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search projects" className="w-full bg-transparent py-2 text-[13.5px] outline-none placeholder:text-[#AEAEB2]" />
+              </div>
               {repos.length === 0 ? (
                 <button onClick={() => { onClose(); go("github"); }} className="mb-4 w-full rounded-2xl border border-dashed border-black/10 p-3 text-left text-[13px] text-[#8E8E93] hover:bg-black/[0.02]">
                   No repositories yet. <span className="font-semibold text-[#007AFF]">Sync GitHub →</span>
                 </button>
               ) : (
                 <div className="mb-4 space-y-0.5">
-                  {repos.map((r) => {
+                  {filtered.slice(0, 60).map((r) => {
                     const on = r.id === active?.pinnedRepoId;
                     return (
-                      <button key={r.id} onClick={() => onPinRepo(on ? null : r.id)} className={`flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left transition-colors ${on ? "bg-[#007AFF]/10" : "hover:bg-black/[0.04]"}`}>
+                      <button key={r.id} onClick={() => { onPinRepo(on ? null : r.id); if (!on) onClose(); }} className={`flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left transition-colors ${on ? "bg-[#007AFF]/10" : "hover:bg-black/[0.04]"}`}>
                         <AppIcon app={r} size={32} />
                         <span className="min-w-0 flex-1 truncate text-[14px] font-medium">{r.name}</span>
                         {on && <Check size={16} className="text-[#007AFF]" />}

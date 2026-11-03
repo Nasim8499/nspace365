@@ -27,9 +27,17 @@ export default function ChatView() {
   const repo = apps.find((a) => a.id === active?.pinnedRepoId);
 
   const loadMessages = useCallback(async (id: string) => {
-    const r = await fetch(`/api/sessions/${id}`, { cache: "no-store" });
-    const d = (await r.json()) as { messages?: ChatMessage[] };
-    setMessages(d.messages ?? []);
+    try {
+      const r = await fetch(`/api/sessions/${id}`, { cache: "no-store" });
+      if (!r.ok) {
+        setMessages([]);
+        return;
+      }
+      const d = (await r.json()) as { messages?: ChatMessage[] };
+      setMessages(d.messages ?? []);
+    } catch {
+      setMessages([]);
+    }
   }, []);
 
   const createSession = useCallback(async (pinnedRepoId: string | null = null) => {
@@ -47,6 +55,7 @@ export default function ChatView() {
     (async () => {
       try {
         const r = await fetch("/api/sessions", { cache: "no-store" });
+        if (!r.ok) throw new Error("sessions unavailable");
         const d = (await r.json()) as { sessions: ChatSession[] };
         if (!alive) return;
         if (d.sessions.length) {
@@ -137,7 +146,7 @@ export default function ChatView() {
         const d = (await res.json()) as { userMessage: ChatMessage; assistantMessage: ChatMessage; session: ChatSession; error?: string };
         if (!res.ok) throw new Error(d.error ?? "Failed");
         setMessages((m) => [...m.filter((x) => x.id !== temp.id), d.userMessage, d.assistantMessage]);
-        setSessions((s) => s.map((x) => (x.id === d.session.id ? d.session : x)));
+        if (d.session) setSessions((s) => s.map((x) => (x.id === d.session!.id ? d.session! : x)));
       } catch {
         setMessages((m) => m.filter((x) => x.id !== temp.id));
         toast("Message failed — try again");
@@ -150,9 +159,15 @@ export default function ChatView() {
   );
 
   const patch = async (id: string, body: Record<string, unknown>) => {
-    const r = await fetch(`/api/sessions/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    const d = (await r.json()) as { session?: ChatSession };
-    if (d.session) setSessions((s) => s.map((x) => (x.id === d.session!.id ? d.session! : x)));
+    setSessions((prev) => prev.map((x) => (x.id === id ? { ...x, ...(body as Partial<ChatSession>) } : x)));
+    try {
+      const r = await fetch(`/api/sessions/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (!r.ok) return;
+      const d = (await r.json()) as { session?: ChatSession };
+      if (d.session) setSessions((s) => s.map((x) => (x.id === d.session!.id ? d.session! : x)));
+    } catch {
+      /* ignore transient network errors */
+    }
   };
 
   const del = async (id: string) => {
@@ -288,7 +303,13 @@ export default function ChatView() {
         }}
         onDelete={del}
         onTogglePin={(s) => patch(s.id, { pinned: !s.pinned })}
-        onPinRepo={(rid) => active && patch(active.id, { pinnedRepoId: rid })}
+        onPinRepo={(rid) => {
+          if (active) {
+            void patch(active.id, { pinnedRepoId: rid });
+          } else if (rid) {
+            void createSession(rid);
+          }
+        }}
       />
     </div>
   );

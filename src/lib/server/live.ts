@@ -239,6 +239,11 @@ export function addMessage(m: Omit<MemMessage, "id" | "createdAt">) {
   return msg;
 }
 
+export function deleteSession(id: string) {
+  mem.sessions.delete(id);
+  mem.messages.delete(id);
+}
+
 export function touchSession(id: string, patch: Partial<ChatSession>) {
   const s = mem.sessions.get(id);
   if (!s) return null;
