@@ -45,8 +45,7 @@ export default function TodayView() {
       {/* GitHub CTA */}
       <motion.section
         initial={{ opacity: 0, y: 14 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.26, ease: "easeOut" }}
         className="relative mt-5 overflow-hidden rounded-3xl border border-black/5 bg-[#F2F2F7] p-6 sm:p-7"
       >
@@ -97,8 +96,7 @@ export default function TodayView() {
           <motion.div
             key={a.id}
             initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.24, ease: "easeOut", delay: Math.min(i * 0.04, 0.2) }}
             whileTap={{ scale: 0.97 }}
             onClick={() => openSheet(a.id)}
