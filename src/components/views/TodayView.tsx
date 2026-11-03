@@ -18,15 +18,15 @@ export default function TodayView() {
     setDate(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }));
   }, []);
 
-  const by = (id: string) => apps.find((a) => a.id === id);
-  const lumen = by("lumen");
-  const pulse = by("pulse");
-  const sky = by("skyforge");
   const repos = apps.filter((a) => a.source === "github");
-  const trending = apps.filter((a) => a.source === "catalog" && a.category !== "developer").sort((a, b) => b.ratings - a.ratings).slice(0, 8);
-  const topApps = apps.filter((a) => a.category === "apps").sort((a, b) => b.ratings - a.ratings).slice(0, 6);
+  const by = (id: string) => apps.find((a) => a.id === id);
+  const lumen = by("lumen") ?? repos[0];
+  const pulse = by("pulse") ?? repos[1];
+  const sky = by("skyforge") ?? repos[2];
+  const trending = repos.slice(0, 8);
+  const topApps = repos.slice(8, 14);
   const games = apps.filter((a) => a.category === "games").slice(0, 3);
-  const arcade = apps.filter((a) => a.category === "arcade").slice(0, 3);
+  const arcade = repos.slice(14, 17);
 
   return (
     <div>

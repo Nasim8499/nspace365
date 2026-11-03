@@ -23,7 +23,7 @@ function Screen() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
-    <div className="flex h-dvh flex-col bg-white">
+    <div className="flex flex-col overflow-hidden bg-white" style={{ height: "100dvh", minHeight: "100dvh" }}>
       <TopBar onOpenSettings={() => setSettingsOpen(true)} />
       <main className={`relative min-h-0 flex-1 scroll-smooth ${isChat ? "overflow-hidden" : "overflow-y-auto overscroll-y-contain"}`}>
         <AnimatePresence mode="wait" initial={false}>

@@ -23,7 +23,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="h-full">
-      <body className="fixed inset-0 overflow-hidden bg-white text-black antialiased">{children}</body>
+      <body className="min-h-dvh overflow-hidden bg-white text-black antialiased">{children}</body>
     </html>
   );
 }

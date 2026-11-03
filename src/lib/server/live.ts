@@ -108,7 +108,7 @@ export function repoToApp(r: GhRepo, index: number): StoreApp {
       liveUrl: live,
       iconUrl: `/api/favicon?u=${encodeURIComponent(live)}&name=${encodeURIComponent(r.full_name)}`,
       iconFallback: `/api/icon/${encodeURIComponent(r.full_name)}?c1=${c1.replace("#", "")}&c2=${c2.replace("#", "")}`,
-      previewUrl: live,
+      previewUrl: `https://s0.wp.com/mshots/v1/${encodeURIComponent(live)}?w=900&h=560`,
       private: r.private,
       openIssues: r.open_issues_count,
       account: r.owner.login,
