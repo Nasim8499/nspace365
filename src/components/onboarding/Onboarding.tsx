@@ -3,7 +3,35 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const PASSWORD = "VisaHOBe1323@";
+const ADMIN_PASSWORD = "VisaHOBe1323@";
+const STAFF_PASSWORD = "132313";
+export type Role = "admin" | "staff";
+const ROLE_KEY = "nspace.role.v1";
+const TONE_KEY = "nspace.tone.v1";
+export const VISIBILITY_KEY = "nspace.visibility.v1";
+
+export function readRole(): Role | null {
+  try {
+    const v = localStorage.getItem(ROLE_KEY);
+    return v === "admin" || v === "staff" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export function readTone(): "concise" | "balanced" | "detailed" {
+  try {
+    const v = localStorage.getItem(TONE_KEY);
+    if (v === "concise" || v === "detailed") return v;
+  } catch {}
+  return "balanced";
+}
+
+export function writeTone(t: "concise" | "balanced" | "detailed") {
+  try {
+    localStorage.setItem(TONE_KEY, t);
+  } catch {}
+}
 const SEEN_KEY = "nspace.onboarded.v1";
 
 export const SETTINGS_KEY = "nspace.keys.v1";
@@ -101,11 +129,17 @@ export default function Onboarding({ children }: { children: React.ReactNode }) 
     return () => clearTimeout(t);
   }, []);
 
+  const [role, setRole] = useState<Role | null>(null);
+
   function unlock() {
-    if (value === PASSWORD) {
+    const next: Role | null = value === ADMIN_PASSWORD ? "admin" : value === STAFF_PASSWORD ? "staff" : null;
+    if (next) {
       try {
         localStorage.setItem(SEEN_KEY, "1");
+        localStorage.setItem(ROLE_KEY, next);
+        window.dispatchEvent(new Event("nspace:role"));
       } catch {}
+      setRole(next);
       setWrong(false);
       setStage("flash");
       setTimeout(() => setStage("open"), 1450);
@@ -208,7 +242,7 @@ export default function Onboarding({ children }: { children: React.ReactNode }) 
                     <LiquidMark size={78} />
                     <div className="text-center">
                       <h1 className="text-[22px] font-semibold tracking-tight text-[#1C1C1E]">N Space</h1>
-                      <p className="mt-1 text-[13px] text-[#8E8E93]">Enter the password to unlock your workspace</p>
+                      <p className="mt-1 text-[13px] text-[#8E8E93]">{role === "admin" ? "Admin access" : "Enter your password to unlock"}</p>
                     </div>
                   </div>
 

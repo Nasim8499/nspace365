@@ -1,13 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Eye, EyeOff, Trash2 } from "lucide-react";
 import { useStore } from "@/components/store";
 import type { StoreApp } from "@/lib/types";
 import AppIcon from "./AppIcon";
 import GetButton from "./GetButton";
 
 export default function AppRow({ app, rank, divider = true, index = 0 }: { app: StoreApp; rank?: number; divider?: boolean; index?: number }) {
-  const { openSheet, openApp } = useStore();
+  const { openSheet, openApp, role, hidden, toggleHidden } = useStore();
+  const isHidden = hidden.includes(app.id);
   const direct = app.source === "github" && !!app.url && /^https?:/.test(app.url);
   return (
     <motion.div
@@ -27,6 +29,30 @@ export default function AppRow({ app, rank, divider = true, index = 0 }: { app: 
         <p className="mt-0.5 truncate text-[13px] leading-snug text-[#8E8E93]">{app.subtitle || app.genre}</p>
         <p className="truncate text-[12px] leading-snug text-[#8E8E93]/80">{app.genre}</p>
       </div>
+      {role === "admin" && (
+        <span className="flex shrink-0 items-center gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleHidden(app.id);
+            }}
+            aria-label={isHidden ? "Show project" : "Hide project"}
+            className="grid h-8 w-8 place-items-center rounded-full bg-[#F2F2F7] text-[#007AFF] active:scale-95"
+          >
+            {isHidden ? <EyeOff size={14} /> : <Eye size={14} />}
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleHidden(app.id);
+            }}
+            aria-label="Remove project"
+            className="grid h-8 w-8 place-items-center rounded-full bg-[#FF3B30]/10 text-[#FF3B30] active:scale-95"
+          >
+            <Trash2 size={14} />
+          </button>
+        </span>
+      )}
       <GetButton app={app} />
       {divider && <span className="absolute bottom-0 right-0 h-px bg-black/[0.06]" style={{ left: rank !== undefined ? 92 : 72 }} />}
     </motion.div>

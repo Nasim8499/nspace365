@@ -3,7 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Eye, EyeOff, KeyRound, Server, ShieldCheck, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { PROVIDER_KEY, readKeys, readProvider, SETTINGS_KEY, type KeyBag } from "@/components/onboarding/Onboarding";
+import { PROVIDER_KEY, readKeys, readProvider, readRole, readTone, SETTINGS_KEY, writeTone, type KeyBag } from "@/components/onboarding/Onboarding";
+import { useStore } from "@/components/store";
 
 type Provider = "local" | "gemini" | "openai" | "deepseek";
 
@@ -17,6 +18,8 @@ const FIELDS: { key: keyof KeyBag; label: string; hint: string; placeholder: str
 ];
 
 export default function SettingsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { role, hidden, restoreAll } = useStore();
+  const [tone, setTone] = useState<"concise" | "balanced" | "detailed">("balanced");
   const [bag, setBag] = useState<KeyBag>({ gemini: "", openai: "", deepseek: "", github1: "", github2: "", localServer: "" });
   const [provider, setProvider] = useState<Provider>("local");
   const [reveal, setReveal] = useState<Record<string, boolean>>({});
@@ -26,6 +29,7 @@ export default function SettingsSheet({ open, onClose }: { open: boolean; onClos
     if (!open) return;
     setBag(readKeys());
     setProvider(readProvider());
+    setTone(readTone());
     setSaved(false);
   }, [open]);
 
@@ -63,7 +67,7 @@ export default function SettingsSheet({ open, onClose }: { open: boolean; onClos
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[15px] font-semibold tracking-tight text-[#1C1C1E]">Keys & connections</p>
-                <p className="text-[11.5px] text-[#8E8E93]">Stored only on this device</p>
+                <p className="text-[11.5px] text-[#8E8E93]">{role === "admin" ? "Admin · full access" : role === "staff" ? "Staff · limited access" : "Stored only on this device"}</p>
               </div>
               <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full bg-black/[0.05] text-[#3C3C43]">
                 <X size={15} />
@@ -110,6 +114,38 @@ export default function SettingsSheet({ open, onClose }: { open: boolean; onClos
                   </div>
                 </div>
               ))}
+
+              <p className="mb-2 mt-1 text-[11px] font-semibold uppercase tracking-wide text-[#8E8E93]">Reply tone</p>
+              <div className="mb-4 grid grid-cols-3 gap-1.5 rounded-[16px] bg-black/[0.05] p-1">
+                {(["concise", "balanced", "detailed"] as const).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => {
+                      setTone(t);
+                      writeTone(t);
+                    }}
+                    className={`rounded-[12px] py-2 text-[12px] font-semibold capitalize transition ${
+                      tone === t ? "bg-white text-[#1C1C1E] shadow-[0_2px_8px_rgba(0,0,0,0.10)]" : "text-[#6C6C70]"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+
+              {role === "admin" && (
+                <div className="mb-4 rounded-[16px] border border-black/[0.06] bg-white/80 p-3">
+                  <p className="flex items-center gap-1.5 text-[12px] font-semibold text-[#1C1C1E]"><ShieldCheck size={13} /> Admin controls</p>
+                  <p className="mt-1 text-[11px] leading-snug text-[#8E8E93]">
+                    Hidden projects: {hidden.length}. Use the eye and trash buttons on any project to hide or remove it.
+                  </p>
+                  {hidden.length > 0 && (
+                    <button onClick={restoreAll} className="mt-2 rounded-full bg-[#007AFF] px-3 py-1.5 text-[11.5px] font-semibold text-white">
+                      Restore all projects
+                    </button>
+                  )}
+                </div>
+              )}
 
               <div className="mt-5 rounded-[16px] border border-black/[0.06] bg-[#F2F2F7]/70 p-3">
                 <p className="flex items-center gap-1.5 text-[12px] font-semibold text-[#1C1C1E]">

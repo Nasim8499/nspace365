@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { FolderGit2, Gamepad2, Layers, Newspaper, Search, TerminalSquare, type LucideIcon } from "lucide-react";
+import { FolderGit2, KeyRound, Layers, Newspaper, Search, TerminalSquare, type LucideIcon } from "lucide-react";
 import { useStore, type View } from "@/components/store";
 
 const tabs: { id: View; label: string; icon: LucideIcon }[] = [
@@ -12,7 +12,7 @@ const tabs: { id: View; label: string; icon: LucideIcon }[] = [
   { id: "ai", label: "Build", icon: TerminalSquare },
 ];
 
-export default function TabBar() {
+export default function TabBar({ onOpenKeys }: { onOpenKeys: () => void }) {
   const { view, go } = useStore();
   const active = view;
 
@@ -47,6 +47,14 @@ export default function TabBar() {
           </button>
         );
       })}
+      <button
+        onClick={onOpenKeys}
+        aria-label="Keys"
+        className="relative flex flex-1 flex-col items-center gap-0.5 rounded-[24px] px-1 py-2 outline-none focus-visible:ring-2 focus-visible:ring-[#007AFF]/40 lg:w-full lg:flex-none lg:py-3"
+      >
+        <KeyRound size={22} strokeWidth={2} className="text-[#8E8E93]" />
+        <span className="text-[10px] font-semibold tracking-tight text-[#8E8E93]">Keys</span>
+      </button>
     </nav>
   );
 }

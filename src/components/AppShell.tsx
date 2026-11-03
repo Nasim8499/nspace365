@@ -55,7 +55,7 @@ function Screen() {
           </motion.div>
         </AnimatePresence>
       </main>
-      <TabBar />
+      <TabBar onOpenKeys={() => setSettingsOpen(true)} />
       <AppSheet />
       <AccountModal />
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />

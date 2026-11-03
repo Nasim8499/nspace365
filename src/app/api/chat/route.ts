@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { runAgent } from "@/lib/agent";
 import { addMessage, getSession, listMessages, touchSession } from "@/lib/server/live";
+import { knowledgeAnswer } from "@/lib/server/knowledge";
 import type { Block } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ interface Body {
   provider?: Provider;
   apiKey?: string;
   model?: string;
+  tone?: "concise" | "balanced" | "detailed";
   repo?: { name?: string; branch?: string; language?: string | null; liveUrl?: string } | null;
 }
 
@@ -98,6 +100,16 @@ export async function POST(req: Request) {
     } catch (err) {
       content = "";
       used = `${provider}-error:${(err as Error).message}`;
+    }
+  }
+
+  const tone = (body.tone ?? "balanced") as "concise" | "balanced" | "detailed";
+
+  if (!content && (provider === "local" || !key)) {
+    const kb = knowledgeAnswer(text, tone, { repo: repo?.name ?? null });
+    if (kb) {
+      content = kb;
+      used = "knowledge";
     }
   }
 

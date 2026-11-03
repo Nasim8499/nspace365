@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp, GitBranch, PanelLeft, SquarePen } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/components/store";
-import { readKeys, readProvider } from "@/components/onboarding/Onboarding";
+import { readKeys, readProvider, readTone } from "@/components/onboarding/Onboarding";
 import type { ChatMessage, ChatSession } from "@/lib/types";
 import ChatDrawer from "./ChatDrawer";
 import MessageBubble from "./MessageBubble";
@@ -129,6 +129,7 @@ export default function ChatView() {
             message: msg,
             provider,
             apiKey,
+            tone: readTone(),
             repo: repoPayload,
           }) }),
           new Promise((r) => setTimeout(r, 700)),

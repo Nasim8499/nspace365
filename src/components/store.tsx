@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { GithubState, StoreApp } from "@/lib/types";
+import { readRole, VISIBILITY_KEY, type Role } from "@/components/onboarding/Onboarding";
 
 export type View = "today" | "games" | "apps" | "arcade" | "search" | "ai" | "github";
 
@@ -31,6 +32,10 @@ interface StoreCtx {
   browserUrl: string | null;
   openBrowser: (url: string) => void;
   closeBrowser: () => void;
+  role: Role | null;
+  hidden: string[];
+  toggleHidden: (id: string) => void;
+  restoreAll: () => void;
   launching: StoreApp | null;
   toasts: Toast[];
   toast: (text: string) => void;
@@ -58,10 +63,51 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [installing, setInstalling] = useState<Record<string, number>>({});
   const [launching, setLaunching] = useState<StoreApp | null>(null);
   const [browserUrl, setBrowserUrl] = useState<string | null>(null);
+  const [role, setRole] = useState<Role | null>(null);
+  const [hidden, setHidden] = useState<string[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [chatRepoRequest, setChatRepoRequest] = useState<StoreCtx["chatRepoRequest"]>(null);
   const toastId = useRef(0);
   const installingRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const sync = () => {
+      setRole(readRole());
+      try {
+        const raw = localStorage.getItem(VISIBILITY_KEY);
+        if (raw) setHidden(JSON.parse(raw) as string[]);
+      } catch {
+        /* ignore */
+      }
+    };
+    sync();
+    window.addEventListener("nspace:role", sync);
+    window.addEventListener("focus", sync);
+    return () => {
+      window.removeEventListener("nspace:role", sync);
+      window.removeEventListener("focus", sync);
+    };
+  }, []);
+
+  const persistHidden = useCallback((next: string[]) => {
+    setHidden(next);
+    try {
+      localStorage.setItem(VISIBILITY_KEY, JSON.stringify(next));
+    } catch {}
+  }, []);
+
+  const toggleHidden = useCallback(
+    (id: string) => {
+      setHidden((prev) => {
+        const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+        try {
+          localStorage.setItem(VISIBILITY_KEY, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     let alive = true;
@@ -192,9 +238,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       sheetId, openSheet: setSheetId, closeSheet: () => setSheetId(null),
       accountOpen, setAccountOpen, installing, getApp, removeApp, openApp, launching,
     browserUrl, openBrowser: (u: string) => setBrowserUrl(u), closeBrowser: () => setBrowserUrl(null),
+    role, hidden, toggleHidden, restoreAll: () => persistHidden([]),
       toasts, toast, chatRepoRequest, askAboutRepo, clearChatRequest: () => setChatRepoRequest(null),
     }),
-    [apps, github, loading, syncing, replaceData, view, go, sheetId, accountOpen, installing, getApp, removeApp, openApp, launching, browserUrl, toasts, toast, chatRepoRequest, askAboutRepo],
+    [apps, github, loading, syncing, replaceData, view, go, sheetId, accountOpen, installing, getApp, removeApp, openApp, launching, browserUrl, role, hidden, toggleHidden, persistHidden, toasts, toast, chatRepoRequest, askAboutRepo],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

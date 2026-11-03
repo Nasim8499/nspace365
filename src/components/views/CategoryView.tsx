@@ -17,11 +17,12 @@ const config: Record<"games" | "apps" | "arcade", { title: string; eyebrow: stri
 };
 
 export default function CategoryView({ category }: { category: Exclude<Category, "developer"> }) {
-  const { apps, go } = useStore();
+  const { apps: allApps, go, hidden, role } = useStore();
+  const apps = role === "staff" ? allApps.filter((a) => !hidden.includes(a.id)) : allApps;
   const cfg = config[category];
   const [genre, setGenre] = useState("All");
 
-  const items = useMemo(() => apps.filter((a) => a.category === category), [apps, category]);
+  const items = useMemo(() => apps.filter((a) => a.category === category && (role !== "staff" || !hidden.includes(a.id))), [apps, category, role, hidden]);
   const genres = useMemo(() => ["All", ...Array.from(new Set(items.map((i) => i.genre)))], [items]);
   const shown = genre === "All" || !genres.includes(genre) ? items : items.filter((i) => i.genre === genre);
   const featured = apps.find((a) => a.id === cfg.featured) ?? items[0];
