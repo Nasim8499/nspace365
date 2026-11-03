@@ -14,14 +14,16 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
   themeColor: "#ffffff",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-white text-black antialiased">{children}</body>
+    <html lang="en" className="h-full">
+      <body className="fixed inset-0 overflow-hidden bg-white text-black antialiased">{children}</body>
     </html>
   );
 }

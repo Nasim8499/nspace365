@@ -1,21 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Gamepad2, Joystick, Layers, Newspaper, Search, TerminalSquare, type LucideIcon } from "lucide-react";
+import { FolderGit2, Gamepad2, Layers, Newspaper, Search, TerminalSquare, type LucideIcon } from "lucide-react";
 import { useStore, type View } from "@/components/store";
 
 const tabs: { id: View; label: string; icon: LucideIcon }[] = [
   { id: "today", label: "Discover", icon: Newspaper },
-  { id: "games", label: "Games", icon: Gamepad2 },
-  { id: "apps", label: "Apps", icon: Layers },
-  { id: "arcade", label: "Arcade", icon: Joystick },
+  { id: "apps", label: "Projects", icon: Layers },
+  { id: "github", label: "Repos", icon: FolderGit2 },
   { id: "search", label: "Search", icon: Search },
   { id: "ai", label: "Build", icon: TerminalSquare },
 ];
 
 export default function TabBar() {
   const { view, go } = useStore();
-  const active = view === "github" ? "apps" : view;
+  const active = view;
 
   return (
     <nav

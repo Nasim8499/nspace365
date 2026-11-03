@@ -24,7 +24,7 @@ export default function CategoryView({ category }: { category: Exclude<Category,
   const items = useMemo(() => apps.filter((a) => a.category === category), [apps, category]);
   const genres = useMemo(() => ["All", ...Array.from(new Set(items.map((i) => i.genre)))], [items]);
   const shown = genre === "All" || !genres.includes(genre) ? items : items.filter((i) => i.genre === genre);
-  const featured = apps.find((a) => a.id === cfg.featured);
+  const featured = apps.find((a) => a.id === cfg.featured) ?? items[0];
   const devItems = category === "apps" ? apps.filter((a) => a.category === "developer") : [];
 
   return (

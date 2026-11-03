@@ -97,7 +97,7 @@ export default function Onboarding({ children }: { children: React.ReactNode }) 
       setStage("open");
       return;
     }
-    const t = setTimeout(() => setStage("locked"), 1750);
+    const t = setTimeout(() => setStage("locked"), 2650);
     return () => clearTimeout(t);
   }, []);
 
@@ -144,29 +144,56 @@ export default function Onboarding({ children }: { children: React.ReactNode }) 
 
             <div className="relative flex h-full flex-col items-center justify-center px-6">
               {stage === "boot" && (
-                <div className="flex flex-col items-center gap-6">
-                  <LiquidMark />
-                  <motion.p
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.6 }}
-                    className="text-[15px] font-medium tracking-tight text-[#1C1C1E]/70"
-                  >
-                    N Space
-                  </motion.p>
+                <div className="flex flex-col items-center gap-7">
+                  <div className="relative grid place-items-center">
+                    {[0, 1, 2].map((i) => (
+                      <motion.span
+                        key={i}
+                        className="absolute rounded-full border border-white/60"
+                        initial={{ width: 96, height: 96, opacity: 0 }}
+                        animate={{ width: 300, height: 300, opacity: [0, 0.55, 0] }}
+                        transition={{ duration: 2.4, delay: 0.25 + i * 0.38, ease: "easeOut", repeat: Infinity }}
+                      />
+                    ))}
+                    <LiquidMark size={112} />
+                  </div>
+
                   <motion.div
-                    className="h-[3px] w-28 overflow-hidden rounded-full bg-black/10"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7 }}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex items-end gap-[2px]"
                   >
+                    {"N SPACE".split("").map((ch, i) => (
+                      <motion.span
+                        key={i}
+                        initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                        transition={{ delay: 0.5 + i * 0.055, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                        className="text-[17px] font-semibold tracking-[0.32em] text-[#1C1C1E]/80"
+                      >
+                        {ch === " " ? "\u00A0" : ch}
+                      </motion.span>
+                    ))}
+                  </motion.div>
+
+                  <motion.div className="h-[3px] w-32 overflow-hidden rounded-full bg-black/10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
                     <motion.span
-                      className="block h-full rounded-full bg-[#007AFF]"
+                      className="block h-full rounded-full bg-gradient-to-r from-[#0A84FF] via-[#5AC8FA] to-[#BF5AF2]"
                       initial={{ width: 0 }}
                       animate={{ width: "100%" }}
-                      transition={{ duration: 1.4, ease: "easeInOut" }}
+                      transition={{ duration: 1.35, ease: "easeInOut" }}
                     />
                   </motion.div>
+
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 1, 0.6, 1] }}
+                    transition={{ duration: 1.6, delay: 0.9 }}
+                    className="text-[11.5px] font-medium uppercase tracking-[0.18em] text-[#8E8E93]"
+                  >
+                    Liquid glass workspace
+                  </motion.p>
                 </div>
               )}
 

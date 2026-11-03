@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Clock, ExternalLink, GitBranch, MessageSquareText, Share, Star, Trash2, Users } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useStore } from "@/components/store";
 import AppIcon from "@/components/ui/AppIcon";
 import GetButton from "@/components/ui/GetButton";
@@ -30,6 +30,7 @@ export default function AppSheet() {
 function SheetBody({ app }: { app: StoreApp }) {
   const { apps, removeApp, toast, askAboutRepo } = useStore();
   const scroller = useRef<HTMLDivElement>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const isRepo = app.source === "github";
   const m = app.meta;
   const peers = apps.filter((a) => a.category === app.category).sort((a, b) => b.ratings - a.ratings);
@@ -97,18 +98,50 @@ function SheetBody({ app }: { app: StoreApp }) {
       {/* screenshots */}
       <div className="relative mt-6">
         <div className="mb-3 flex items-center justify-between px-5 sm:px-8">
-          <h3 className="text-[20px] font-bold tracking-tight">Preview</h3>
+          <h3 className="text-[20px] font-bold tracking-tight">Live preview</h3>
+          {isRepo && m.liveUrl && (
+            <button
+              onClick={() => setReloadKey((k) => k + 1)}
+              className="rounded-full bg-[#F2F2F7] px-3 py-1 text-[12px] font-semibold text-[#007AFF] active:scale-95"
+            >
+              Reload
+            </button>
+          )}
           <div className="hidden gap-1.5 md:flex">
             <button onClick={() => scroller.current?.scrollBy({ left: -280, behavior: "smooth" })} aria-label="Previous" className="grid h-8 w-8 place-items-center rounded-full bg-[#F2F2F7] text-[#007AFF]"><ChevronLeft size={18} /></button>
             <button onClick={() => scroller.current?.scrollBy({ left: 280, behavior: "smooth" })} aria-label="Next" className="grid h-8 w-8 place-items-center rounded-full bg-[#F2F2F7] text-[#007AFF]"><ChevronRight size={18} /></button>
           </div>
         </div>
         <div ref={scroller} className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-1 sm:px-8">
-          {isRepo && m.previewUrl && (
-            <div className="aspect-[16/10] h-[260px] shrink-0 snap-start overflow-hidden rounded-2xl border border-black/10 bg-[#F2F2F7] shadow-[0_8px_28px_rgba(0,0,0,0.1)] sm:h-[300px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={m.previewUrl} alt="Live preview" className="h-full w-full object-cover" />
-            </div>
+          {isRepo && m.liveUrl && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="h-[300px] w-[88%] shrink-0 snap-start overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_10px_30px_rgba(0,0,0,0.12)] sm:h-[360px]"
+            >
+              <div className="flex h-8 items-center gap-1.5 border-b border-black/[0.06] bg-[#F7F7FA] px-2.5">
+                <span className="flex gap-1">
+                  <i className="h-2 w-2 rounded-full bg-[#FF5F57]" />
+                  <i className="h-2 w-2 rounded-full bg-[#FEBC2E]" />
+                  <i className="h-2 w-2 rounded-full bg-[#28C840]" />
+                </span>
+                <span className="ml-1 min-w-0 flex-1 truncate rounded-md bg-white px-2 py-[3px] text-[10px] text-[#6C6C70]">
+                  {String(m.liveUrl).replace(/^https?:\/\//, "")}
+                </span>
+                <span className="flex items-center gap-1 rounded-full bg-[#34C759]/15 px-1.5 py-[2px] text-[9px] font-bold text-[#1B7F37]">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#34C759]" /> LIVE
+                </span>
+              </div>
+              <iframe
+                key={`${app.id}-${reloadKey}`}
+                src={String(m.liveUrl)}
+                title={`${app.name} live preview`}
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                className="h-[calc(100%-32px)] w-full border-0 bg-white"
+              />
+            </motion.div>
           )}
           {shots.map((i) => (
             <motion.div

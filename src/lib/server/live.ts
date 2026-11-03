@@ -1,5 +1,4 @@
 import type { ChatSession, GithubState, StoreApp } from "@/lib/types";
-import { seedApps } from "@/lib/seed-data";
 
 /**
  * Live data layer — no database required.
@@ -158,8 +157,6 @@ export async function liveApps(): Promise<{ apps: StoreApp[]; github: GithubStat
     }
   }
 
-  const seed = (seedApps as unknown as StoreApp[]).map((a, i) => ({ ...a, sortOrder: collected.length + i }));
-
   const state: GithubState = collected.length
     ? {
         connected: true,
@@ -171,7 +168,7 @@ export async function liveApps(): Promise<{ apps: StoreApp[]; github: GithubStat
       }
     : { connected: false, mode: "demo", lastSync: new Date().toISOString(), repoCount: 0 };
 
-  const apps = [...collected, ...seed];
+  const apps = collected;
   cache = { at: Date.now(), apps, state };
   return { apps, github: state };
 }
