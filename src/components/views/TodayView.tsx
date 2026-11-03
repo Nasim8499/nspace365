@@ -1,0 +1,139 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { ArrowRight, GitBranch } from "lucide-react";
+import GithubMark from "@/components/ui/GithubMark";
+import { useEffect, useState } from "react";
+import { useStore } from "@/components/store";
+import AppIcon from "@/components/ui/AppIcon";
+import AppRow from "@/components/ui/AppRow";
+import GetButton from "@/components/ui/GetButton";
+import HeroCard from "@/components/ui/HeroCard";
+import SectionHeader, { ViewHeader } from "@/components/ui/SectionHeader";
+
+export default function TodayView() {
+  const { apps, github, go, openSheet } = useStore();
+  const [date, setDate] = useState("");
+  useEffect(() => {
+    setDate(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }));
+  }, []);
+
+  const by = (id: string) => apps.find((a) => a.id === id);
+  const lumen = by("lumen");
+  const pulse = by("pulse");
+  const sky = by("skyforge");
+  const repos = apps.filter((a) => a.source === "github");
+  const trending = apps.filter((a) => a.source === "catalog" && a.category !== "developer").sort((a, b) => b.ratings - a.ratings).slice(0, 8);
+  const topApps = apps.filter((a) => a.category === "apps").sort((a, b) => b.ratings - a.ratings).slice(0, 6);
+  const games = apps.filter((a) => a.category === "games").slice(0, 3);
+  const arcade = apps.filter((a) => a.category === "arcade").slice(0, 3);
+
+  return (
+    <div>
+      <ViewHeader eyebrow={date || " "} title="Today" />
+
+      <div className="grid gap-5 md:grid-cols-2">
+        {lumen && (
+          <div className="md:col-span-2">
+            <HeroCard app={lumen} image="/hero/hero-aurora.jpg" badge="NOW AVAILABLE" title={"Shoot like\na pro."} index={0} />
+          </div>
+        )}
+        {pulse && <HeroCard app={pulse} image="/hero/hero-mint.jpg" badge="MAJOR UPDATE" title={"Your best\nshape yet."} tall={false} index={1} />}
+        {sky && <HeroCard app={sky} image="/hero/hero-sunset.jpg" badge="GAME OF THE DAY" title={"Rule the\nskies."} tall={false} index={2} />}
+      </div>
+
+      {/* GitHub CTA */}
+      <motion.section
+        initial={{ opacity: 0, y: 14 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.26, ease: "easeOut" }}
+        className="relative mt-5 overflow-hidden rounded-3xl border border-black/5 bg-[#F2F2F7] p-6 sm:p-7"
+      >
+        <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-[#007AFF]/15 blur-3xl" />
+        <p className="relative text-[13px] font-semibold uppercase tracking-wider text-[#007AFF]">Developer</p>
+        <h3 className="relative mt-1 max-w-[18ch] text-[28px] font-bold leading-tight tracking-tight text-black">Turn your repos into apps.</h3>
+        <p className="relative mt-2 max-w-md text-[15px] leading-snug text-[#3C3C43]/70">
+          Sync GitHub and every repository becomes an App Store listing with an auto-generated icon, live preview and commit timeline.
+        </p>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
+          onClick={() => go("github")}
+          className="relative mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-[#007AFF] px-5 text-[15px] font-semibold text-white shadow-[0_6px_18px_rgba(0,122,255,0.35)]"
+        >
+          <GithubMark size={18} /> {github.connected ? `${github.repoCount ?? repos.length} repos synced` : "Sync Repositories"} <ArrowRight size={16} />
+        </motion.button>
+      </motion.section>
+
+      {repos.length > 0 && (
+        <>
+          <SectionHeader title="Your Projects" action="Manage" onAction={() => go("github")} />
+          <div className="no-scrollbar -mx-4 mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
+            {repos.map((r) => (
+              <div key={r.id} onClick={() => openSheet(r.id)} className="w-[260px] shrink-0 cursor-pointer snap-start rounded-3xl border border-black/5 bg-white p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_8px_28px_rgba(0,0,0,0.09)]">
+                <div className="flex items-center gap-3">
+                  <AppIcon app={r} size={56} />
+                  <div className="min-w-0">
+                    <p className="truncate text-[16px] font-semibold">{r.name}</p>
+                    <p className="flex items-center gap-1 text-[12px] text-[#8E8E93]">
+                      <GitBranch size={12} /> {r.meta.branch}
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-3 line-clamp-2 min-h-[36px] text-[13px] leading-snug text-[#8E8E93]">{r.description}</p>
+                <div className="mt-3 flex justify-end">
+                  <GetButton app={r} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      <SectionHeader title="Trending Now" />
+      <div className="no-scrollbar -mx-4 mt-3 flex snap-x gap-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
+        {trending.map((a, i) => (
+          <motion.div
+            key={a.id}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.24, ease: "easeOut", delay: Math.min(i * 0.04, 0.2) }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => openSheet(a.id)}
+            className="w-[132px] shrink-0 cursor-pointer snap-start"
+          >
+            <AppIcon app={a} size={132} className="!rounded-[30px]" />
+            <p className="mt-2 truncate text-[15px] font-semibold text-black">{a.name}</p>
+            <p className="truncate text-[12px] text-[#8E8E93]">{a.genre}</p>
+            <div className="mt-2">
+              <GetButton app={a} />
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <SectionHeader title="Top Free Apps" action="See All" onAction={() => go("apps")} />
+      <div className="mt-1 grid gap-x-8 md:grid-cols-2">
+        {topApps.map((a, i) => (
+          <AppRow key={a.id} app={a} rank={i + 1} index={i} divider={i < topApps.length - 1} />
+        ))}
+      </div>
+
+      <SectionHeader title="Games We Love" action="See All" onAction={() => go("games")} />
+      <div className="mt-1 grid gap-x-8 md:grid-cols-2">
+        {games.map((a, i) => (
+          <AppRow key={a.id} app={a} index={i} divider={i < games.length - 1} />
+        ))}
+      </div>
+
+      <SectionHeader title="Now in Arcade" action="See All" onAction={() => go("arcade")} />
+      <div className="mt-1 grid gap-x-8 md:grid-cols-2">
+        {arcade.map((a, i) => (
+          <AppRow key={a.id} app={a} index={i} divider={i < arcade.length - 1} />
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,116 @@
+"use client";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, GitBranch, MessageSquare, Pin, PinOff, SquarePen, Trash2, X } from "lucide-react";
+import { useStore } from "@/components/store";
+import AppIcon from "@/components/ui/AppIcon";
+import { timeAgo } from "@/lib/format";
+import type { ChatSession } from "@/lib/types";
+
+export default function ChatDrawer({
+  open, onClose, sessions, activeId, onSelect, onNew, onDelete, onTogglePin, onPinRepo,
+}: {
+  open: boolean;
+  onClose: () => void;
+  sessions: ChatSession[];
+  activeId: string | null;
+  onSelect: (id: string) => void;
+  onNew: () => void;
+  onDelete: (id: string) => void;
+  onTogglePin: (s: ChatSession) => void;
+  onPinRepo: (repoId: string | null) => void;
+}) {
+  const { apps, go } = useStore();
+  const repos = apps.filter((a) => a.source === "github");
+  const active = sessions.find((s) => s.id === activeId);
+  const activeRepo = repos.find((r) => r.id === active?.pinnedRepoId);
+  const sorted = [...sessions].sort((a, b) => Number(b.pinned) - Number(a.pinned) || +new Date(b.updatedAt) - +new Date(a.updatedAt));
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[60]">
+          <motion.div className="absolute inset-0 bg-black/25 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2, ease: "easeOut" }} onClick={onClose} />
+          <motion.aside
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ duration: 0.28, ease: "easeOut" }}
+            className="absolute inset-y-0 left-0 flex w-[340px] max-w-[88vw] flex-col border-r border-black/5 bg-white/85 shadow-[0_8px_48px_rgba(0,0,0,0.18)] backdrop-blur-2xl"
+            style={{ paddingTop: "var(--safe-top)" }}
+          >
+            <div className="flex items-center justify-between px-4 pb-2 pt-4">
+              <h2 className="text-[22px] font-bold tracking-tight">Chats</h2>
+              <button onClick={onClose} aria-label="Close drawer" className="grid h-8 w-8 place-items-center rounded-full bg-black/[0.06] text-[#8E8E93]">
+                <X size={16} strokeWidth={2.6} />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-6">
+              <button onClick={onNew} className="mb-3 flex w-full items-center gap-2 rounded-2xl bg-[#007AFF] px-4 py-3 text-[15px] font-semibold text-white shadow-[0_6px_18px_rgba(0,122,255,0.3)] transition-transform active:scale-[0.98]">
+                <SquarePen size={17} /> New chat
+              </button>
+
+              {/* active context */}
+              <div className="mb-4 rounded-2xl border border-black/5 bg-[#F2F2F7] p-3.5">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#8E8E93]">Active context</p>
+                <div className="mt-2 flex items-center gap-2.5">
+                  {activeRepo ? <AppIcon app={activeRepo} size={36} /> : <span className="grid h-9 w-9 place-items-center rounded-[10px] bg-white text-[#8E8E93]"><GitBranch size={17} /></span>}
+                  <div className="min-w-0">
+                    <p className="truncate text-[14.5px] font-semibold">{activeRepo?.meta.fullName ?? "No repository pinned"}</p>
+                    <p className="flex items-center gap-1 font-mono text-[12px] text-[#007AFF]">
+                      <GitBranch size={12} /> {active?.branch ?? "main"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* pinned repos */}
+              <p className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-wider text-[#8E8E93]">Pinned repos</p>
+              {repos.length === 0 ? (
+                <button onClick={() => { onClose(); go("github"); }} className="mb-4 w-full rounded-2xl border border-dashed border-black/10 p-3 text-left text-[13px] text-[#8E8E93] hover:bg-black/[0.02]">
+                  No repositories yet. <span className="font-semibold text-[#007AFF]">Sync GitHub →</span>
+                </button>
+              ) : (
+                <div className="mb-4 space-y-0.5">
+                  {repos.map((r) => {
+                    const on = r.id === active?.pinnedRepoId;
+                    return (
+                      <button key={r.id} onClick={() => onPinRepo(on ? null : r.id)} className={`flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left transition-colors ${on ? "bg-[#007AFF]/10" : "hover:bg-black/[0.04]"}`}>
+                        <AppIcon app={r} size={32} />
+                        <span className="min-w-0 flex-1 truncate text-[14px] font-medium">{r.name}</span>
+                        {on && <Check size={16} className="text-[#007AFF]" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* sessions */}
+              <p className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-wider text-[#8E8E93]">Conversations</p>
+              <div className="space-y-0.5">
+                {sorted.map((s) => (
+                  <div key={s.id} className={`group flex items-center gap-1 rounded-xl pr-1 transition-colors ${s.id === activeId ? "bg-black/[0.06]" : "hover:bg-black/[0.04]"}`}>
+                    <button onClick={() => onSelect(s.id)} className="flex min-w-0 flex-1 items-center gap-2.5 px-2 py-2 text-left">
+                      {s.pinned ? <Pin size={15} className="shrink-0 text-[#007AFF]" /> : <MessageSquare size={15} className="shrink-0 text-[#8E8E93]" />}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[14.5px] font-medium">{s.title}</span>
+                        <span className="block text-[11.5px] text-[#8E8E93]">{timeAgo(s.updatedAt)} · {s.branch}</span>
+                      </span>
+                    </button>
+                    <button onClick={() => onTogglePin(s)} aria-label={s.pinned ? "Unpin" : "Pin"} className="grid h-8 w-8 place-items-center rounded-full text-[#8E8E93] hover:bg-black/[0.06]">
+                      {s.pinned ? <PinOff size={14} /> : <Pin size={14} />}
+                    </button>
+                    <button onClick={() => onDelete(s.id)} aria-label="Delete chat" className="grid h-8 w-8 place-items-center rounded-full text-[#8E8E93] hover:bg-[#FF3B30]/10 hover:text-[#FF3B30]">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.aside>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+}

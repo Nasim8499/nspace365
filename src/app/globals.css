@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #ffffff;
+  --bg-secondary: #f2f2f7;
+  --label: #000000;
+  --label-2: #1c1c1e;
+  --label-3: #8e8e93;
+  --blue: #007aff;
+  --hairline: rgba(0, 0, 0, 0.06);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--label);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+.pb-safe {
+  padding-bottom: calc(var(--safe-bottom) + 6.5rem);
+}
+
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.45); }
+  100% { box-shadow: 0 0 0 8px rgba(0, 122, 255, 0); }
+}
+.pulse-dot {
+  animation: pulse-ring 1.2s ease-out infinite;
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin-slow 0.9s linear infinite;
+}
+
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+.typing-dot {
+  animation: typing 1s ease-out infinite;
+}
+
+::selection {
+  background: rgba(0, 122, 255, 0.22);
+}

@@ -1,0 +1,75 @@
+"use client";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import { StoreProvider, useStore } from "@/components/store";
+import TopBar from "@/components/shell/TopBar";
+import TabBar from "@/components/shell/TabBar";
+import { LaunchOverlay, Toasts } from "@/components/shell/Overlays";
+import TodayView from "@/components/views/TodayView";
+import CategoryView from "@/components/views/CategoryView";
+import SearchView from "@/components/views/SearchView";
+import GitHubView from "@/components/views/GitHubView";
+import ChatView from "@/components/chat/ChatView";
+import AppSheet from "@/components/sheets/AppSheet";
+import AccountModal from "@/components/sheets/AccountModal";
+import SettingsSheet from "@/components/sheets/SettingsSheet";
+import Onboarding from "@/components/onboarding/Onboarding";
+
+function Screen() {
+  const { view, loading } = useStore();
+  const isChat = view === "ai";
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  return (
+    <div className="flex h-dvh flex-col bg-white">
+      <TopBar onOpenSettings={() => setSettingsOpen(true)} />
+      <main className={`relative min-h-0 flex-1 ${isChat ? "overflow-hidden" : "overflow-y-auto overscroll-contain"}`}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className={isChat ? "h-full" : "mx-auto max-w-6xl px-4 pb-safe md:px-8 lg:pl-[120px]"}
+          >
+            {loading && !isChat ? (
+              <div className="space-y-4 pt-8">
+                <div className="h-10 w-40 animate-pulse rounded-xl bg-[#F2F2F7]" />
+                <div className="h-[420px] animate-pulse rounded-3xl bg-[#F2F2F7]" />
+                <div className="h-20 animate-pulse rounded-2xl bg-[#F2F2F7]" />
+              </div>
+            ) : view === "today" ? (
+              <TodayView />
+            ) : view === "games" || view === "apps" || view === "arcade" ? (
+              <CategoryView category={view} />
+            ) : view === "search" ? (
+              <SearchView />
+            ) : view === "github" ? (
+              <GitHubView />
+            ) : (
+              <ChatView />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </main>
+      <TabBar />
+      <AppSheet />
+      <AccountModal />
+      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <Toasts />
+      <LaunchOverlay />
+    </div>
+  );
+}
+
+export default function AppShell() {
+  return (
+    <StoreProvider>
+      <Onboarding>
+        <Screen />
+      </Onboarding>
+    </StoreProvider>
+  );
+}
