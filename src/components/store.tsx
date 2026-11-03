@@ -28,6 +28,9 @@ interface StoreCtx {
   getApp: (app: StoreApp) => void;
   removeApp: (app: StoreApp) => void;
   openApp: (app: StoreApp) => void;
+  browserUrl: string | null;
+  openBrowser: (url: string) => void;
+  closeBrowser: () => void;
   launching: StoreApp | null;
   toasts: Toast[];
   toast: (text: string) => void;
@@ -54,6 +57,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [accountOpen, setAccountOpen] = useState(false);
   const [installing, setInstalling] = useState<Record<string, number>>({});
   const [launching, setLaunching] = useState<StoreApp | null>(null);
+  const [browserUrl, setBrowserUrl] = useState<string | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [chatRepoRequest, setChatRepoRequest] = useState<StoreCtx["chatRepoRequest"]>(null);
   const toastId = useRef(0);
@@ -165,8 +169,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (app.url && /^https?:/.test(app.url)) {
-        window.open(app.url, "_blank", "noopener,noreferrer");
-        toast(`Opening ${app.name}`);
+        setBrowserUrl(app.url);
         return;
       }
       setLaunching(app);
@@ -188,9 +191,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       apps, github, loading, syncing, setSyncing, replaceData, view, go,
       sheetId, openSheet: setSheetId, closeSheet: () => setSheetId(null),
       accountOpen, setAccountOpen, installing, getApp, removeApp, openApp, launching,
+    browserUrl, openBrowser: (u: string) => setBrowserUrl(u), closeBrowser: () => setBrowserUrl(null),
       toasts, toast, chatRepoRequest, askAboutRepo, clearChatRequest: () => setChatRepoRequest(null),
     }),
-    [apps, github, loading, syncing, replaceData, view, go, sheetId, accountOpen, installing, getApp, removeApp, openApp, launching, toasts, toast, chatRepoRequest, askAboutRepo],
+    [apps, github, loading, syncing, replaceData, view, go, sheetId, accountOpen, installing, getApp, removeApp, openApp, launching, browserUrl, toasts, toast, chatRepoRequest, askAboutRepo],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

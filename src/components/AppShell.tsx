@@ -14,6 +14,7 @@ import ChatView from "@/components/chat/ChatView";
 import AppSheet from "@/components/sheets/AppSheet";
 import AccountModal from "@/components/sheets/AccountModal";
 import SettingsSheet from "@/components/sheets/SettingsSheet";
+import BrowserSheet from "@/components/sheets/BrowserSheet";
 import Onboarding from "@/components/onboarding/Onboarding";
 
 function Screen() {
@@ -58,6 +59,7 @@ function Screen() {
       <AppSheet />
       <AccountModal />
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <BrowserSheet />
       <Toasts />
       <LaunchOverlay />
     </div>

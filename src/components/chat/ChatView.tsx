@@ -1,22 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, GitBranch, GitCommitHorizontal, GitPullRequestArrow, PanelLeft, Rocket, ScanSearch, SquarePen, Upload, Sparkles } from "lucide-react";
+import { ArrowUp, GitBranch, PanelLeft, SquarePen } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/components/store";
 import { readKeys, readProvider } from "@/components/onboarding/Onboarding";
 import type { ChatMessage, ChatSession } from "@/lib/types";
 import ChatDrawer from "./ChatDrawer";
 import MessageBubble from "./MessageBubble";
+import AgentOrb from "./AgentOrb";
 
-const QUICK = [
-  { label: "git pull", prompt: "git pull", icon: GitPullRequestArrow },
-  { label: "Commit", prompt: 'git commit -m "feat: polish glass surfaces"', icon: GitCommitHorizontal },
-  { label: "Push", prompt: "git push", icon: Upload },
-  { label: "New branch", prompt: "Create branch feature/liquid-glass", icon: GitBranch },
-  { label: "Review", prompt: "Review my latest changes", icon: ScanSearch },
-  { label: "Deploy", prompt: "deploy", icon: Rocket },
-];
 
 export default function ChatView() {
   const { apps, chatRepoRequest, clearChatRequest, toast } = useStore();
@@ -207,31 +200,15 @@ export default function ChatView() {
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 md:px-6">
         <div className="mx-auto max-w-3xl space-y-4 py-5">
           {ready && messages.length === 0 && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.26, ease: "easeOut" }} className="flex flex-col items-center pt-8 text-center sm:pt-14">
-              <span className="grid h-16 w-16 place-items-center rounded-[22px] bg-gradient-to-br from-[#007AFF] to-[#5AC8FA] text-white shadow-[0_12px_32px_rgba(0,122,255,0.3)]">
-                <Sparkles size={30} />
-              </span>
-              <h2 className="mt-5 text-[28px] font-bold tracking-tight">What should we ship today?</h2>
-              <p className="mt-1.5 max-w-md text-[15px] text-[#8E8E93]">Run Git operations and code reviews in plain language. {repo ? `Working in ${repo.name}.` : "Pin a repo from the drawer for context."}</p>
-              <div className="mt-7 grid w-full max-w-xl grid-cols-2 gap-2.5">
-                {QUICK.slice(0, 4).map((q, i) => (
-                  <motion.button
-                    key={q.label}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.22, ease: "easeOut", delay: 0.06 * i }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => send(q.prompt)}
-                    className="flex items-center gap-2.5 rounded-2xl border border-black/[0.06] bg-white p-3.5 text-left shadow-sm transition-colors hover:bg-[#F2F2F7]"
-                  >
-                    <q.icon size={18} className="shrink-0 text-[#007AFF]" />
-                    <span>
-                      <span className="block text-[14.5px] font-semibold text-black">{q.label}</span>
-                      <span className="block truncate font-mono text-[11.5px] text-[#8E8E93]">{q.prompt}</span>
-                    </span>
-                  </motion.button>
-                ))}
-              </div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center pt-10 text-center sm:pt-16"
+            >
+              <AgentOrb size={78} live />
+              <p className="mt-5 text-[17px] font-semibold tracking-tight text-[#1C1C1E]">N Space Agent</p>
+              <p className="mt-1 text-[13px] text-[#8E8E93]">{repo ? repo.name : "ready"}</p>
             </motion.div>
           )}
 
@@ -242,7 +219,7 @@ export default function ChatView() {
           <AnimatePresence>
             {sending && (
               <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18, ease: "easeOut" }} className="flex gap-2.5">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#007AFF] to-[#5AC8FA] text-white"><Sparkles size={14} /></span>
+                <AgentOrb size={28} live />
                 <div className="flex items-center gap-1 rounded-[22px] rounded-tl-lg border border-black/5 bg-[#F2F2F7] px-4 py-3.5">
                   {[0, 1, 2].map((i) => (
                     <span key={i} className="typing-dot h-2 w-2 rounded-full bg-[#8E8E93]" style={{ animationDelay: `${i * 0.15}s` }} />
@@ -258,20 +235,6 @@ export default function ChatView() {
       {/* composer */}
       <div className="shrink-0 px-3 pb-[calc(var(--safe-bottom)+5.75rem)] pt-2 md:px-6 lg:pb-5">
         <div className="mx-auto max-w-3xl">
-          <div className="no-scrollbar -mx-1 mb-2 flex gap-2 overflow-x-auto px-1">
-            {QUICK.map((q) => (
-              <motion.button
-                key={q.label}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.12, ease: "easeOut" }}
-                onClick={() => send(q.prompt)}
-                disabled={sending}
-                className="flex shrink-0 items-center gap-1.5 rounded-full border border-black/[0.06] bg-white px-3 py-1.5 text-[13px] font-semibold text-[#1C1C1E] shadow-sm transition-colors hover:bg-[#F2F2F7] disabled:opacity-50"
-              >
-                <q.icon size={14} className="text-[#007AFF]" /> {q.label}
-              </motion.button>
-            ))}
-          </div>
           <form
             onSubmit={(e) => {
               e.preventDefault();
