@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import ViewportLock from "@/components/shell/ViewportLock";
 
 export const metadata: Metadata = {
   title: "N Space — Liquid Glass App Store & AI Hub",
@@ -17,13 +18,16 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#ffffff",
+  themeColor: "#0A84FF",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="h-full">
-      <body className="min-h-dvh overflow-hidden bg-white text-black antialiased">{children}</body>
+      <body className="min-h-dvh overflow-hidden bg-white text-black antialiased">
+        <ViewportLock />
+        {children}
+      </body>
     </html>
   );
 }

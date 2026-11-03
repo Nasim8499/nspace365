@@ -16,6 +16,7 @@ interface Body {
   model?: string;
   tone?: "concise" | "balanced" | "detailed";
   repo?: { name?: string; branch?: string; language?: string | null; liveUrl?: string } | null;
+  knowledge?: string;
 }
 
 const SYSTEMS: Record<string, string> = {
@@ -65,6 +66,29 @@ async function callLLM(provider: Exclude<Provider, "local">, key: string, model:
   return String(d?.choices?.[0]?.message?.content ?? "").trim();
 }
 
+
+function pickNotes(notes: string, query: string): string {
+  const lines = notes
+    .split(/[\n•]+/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 2);
+  if (!lines.length) return "";
+  const words = query
+    .toLowerCase()
+    .split(/[^a-z0-9\u0980-\u09FF]+/)
+    .filter((w) => w.length > 2);
+  const scored = lines
+    .map((line) => {
+      const low = line.toLowerCase();
+      const hits = words.filter((w) => low.includes(w)).length;
+      return { line, hits };
+    })
+    .sort((a, b) => b.hits - a.hits);
+  const best = scored.slice(0, 3).filter((s) => s.hits > 0);
+  const chosen = best.length ? best : scored.slice(0, 2);
+  return chosen.map((c) => c.line).join("\n");
+}
+
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as Body;
   const text = body.message?.trim();
@@ -82,7 +106,9 @@ export async function POST(req: Request) {
     (provider === "gemini" ? "gemini-2.0-flash" : provider === "openai" ? "gpt-4o-mini" : "deepseek-chat");
 
   const repo = body.repo ?? (session?.pinnedRepoId ? { name: session.pinnedRepoId } : null);
+  const notes = String(body.knowledge ?? "").slice(0, 4000).trim();
   const prompt = [
+    notes ? `Owner knowledge (authoritative):\n${notes}` : "",
     repo?.name ? `Repository: ${repo.name}${repo.branch ? ` (branch ${repo.branch})` : ""}` : "",
     `Request: ${text}`
   ]
@@ -107,7 +133,12 @@ export async function POST(req: Request) {
 
   if (!content && (provider === "local" || !key)) {
     const kb = knowledgeAnswer(text, tone, { repo: repo?.name ?? null });
-    if (kb) {
+    const noteHit = pickNotes(notes, text);
+    if (noteHit) {
+      const generic = /I can help with the workspace itself/i.test(kb ?? "");
+      content = [noteHit, generic ? "" : kb].filter(Boolean).join("\n\n");
+      used = "knowledge+notes";
+    } else if (kb) {
       content = kb;
       used = "knowledge";
     }

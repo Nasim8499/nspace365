@@ -30,16 +30,16 @@ export default function TodayView() {
 
   return (
     <div>
-      <ViewHeader eyebrow={date || " "} title="Today" />
+      <ViewHeader eyebrow={date || " "} title="Discover" />
 
       <div className="grid gap-5 md:grid-cols-2">
         {lumen && (
           <div className="md:col-span-2">
-            <HeroCard app={lumen} image="/hero/hero-aurora.jpg" badge="NOW AVAILABLE" title={"Shoot like\na pro."} index={0} />
+            <HeroCard app={lumen} image="/hero/hero-aurora.jpg" badge="LIVE FROM GITHUB" title={"Your repo,\non your phone."} index={0} />
           </div>
         )}
-        {pulse && <HeroCard app={pulse} image="/hero/hero-mint.jpg" badge="MAJOR UPDATE" title={"Your best\nshape yet."} tall={false} index={1} />}
-        {sky && <HeroCard app={sky} image="/hero/hero-sunset.jpg" badge="GAME OF THE DAY" title={"Rule the\nskies."} tall={false} index={2} />}
+        {pulse && <HeroCard app={pulse} image="/hero/hero-mint.jpg" badge="TAP TO OPEN" title={"Full app,\ninside here."} tall={false} index={1} />}
+        {sky && <HeroCard app={sky} image="/hero/hero-sunset.jpg" badge="JUST SYNCED" title={"Every commit,\none place."} tall={false} index={2} />}
       </div>
 
       {/* GitHub CTA */}
@@ -90,7 +90,7 @@ export default function TodayView() {
         </>
       )}
 
-      <SectionHeader title="Trending Now" />
+      <SectionHeader title="Fresh from your repos" />
       <div className="no-scrollbar -mx-4 mt-3 flex snap-x gap-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
         {trending.map((a, i) => (
           <motion.div
@@ -112,26 +112,16 @@ export default function TodayView() {
         ))}
       </div>
 
-      <SectionHeader title="Top Free Apps" action="See All" onAction={() => go("apps")} />
+      <SectionHeader title="All Projects" action="See All" onAction={() => go("apps")} />
       <div className="mt-1 grid gap-x-8 md:grid-cols-2">
         {topApps.map((a, i) => (
           <AppRow key={a.id} app={a} rank={i + 1} index={i} divider={i < topApps.length - 1} />
         ))}
       </div>
 
-      <SectionHeader title="Games We Love" action="See All" onAction={() => go("games")} />
-      <div className="mt-1 grid gap-x-8 md:grid-cols-2">
-        {games.map((a, i) => (
-          <AppRow key={a.id} app={a} index={i} divider={i < games.length - 1} />
-        ))}
-      </div>
+      
 
-      <SectionHeader title="Now in Arcade" action="See All" onAction={() => go("arcade")} />
-      <div className="mt-1 grid gap-x-8 md:grid-cols-2">
-        {arcade.map((a, i) => (
-          <AppRow key={a.id} app={a} index={i} divider={i < arcade.length - 1} />
-        ))}
-      </div>
+      
     </div>
   );
 }

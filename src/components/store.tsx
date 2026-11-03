@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { GithubState, StoreApp } from "@/lib/types";
-import { readRole, VISIBILITY_KEY, type Role } from "@/components/onboarding/Onboarding";
+import { readRole, readUser, signOut, VISIBILITY_KEY, type Role, type SessionUser } from "@/components/onboarding/Onboarding";
 
 export type View = "today" | "games" | "apps" | "arcade" | "search" | "ai" | "github";
 
@@ -33,6 +33,8 @@ interface StoreCtx {
   openBrowser: (url: string) => void;
   closeBrowser: () => void;
   role: Role | null;
+  user: SessionUser | null;
+  signOutNow: () => void;
   hidden: string[];
   toggleHidden: (id: string) => void;
   restoreAll: () => void;
@@ -64,6 +66,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [launching, setLaunching] = useState<StoreApp | null>(null);
   const [browserUrl, setBrowserUrl] = useState<string | null>(null);
   const [role, setRole] = useState<Role | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [hidden, setHidden] = useState<string[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [chatRepoRequest, setChatRepoRequest] = useState<StoreCtx["chatRepoRequest"]>(null);
@@ -73,6 +76,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const sync = () => {
       setRole(readRole());
+      setUser(readUser());
       try {
         const raw = localStorage.getItem(VISIBILITY_KEY);
         if (raw) setHidden(JSON.parse(raw) as string[]);
@@ -82,9 +86,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     };
     sync();
     window.addEventListener("nspace:role", sync);
+    window.addEventListener("nspace:session", sync);
     window.addEventListener("focus", sync);
     return () => {
       window.removeEventListener("nspace:role", sync);
+      window.removeEventListener("nspace:session", sync);
       window.removeEventListener("focus", sync);
     };
   }, []);
@@ -238,7 +244,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       sheetId, openSheet: setSheetId, closeSheet: () => setSheetId(null),
       accountOpen, setAccountOpen, installing, getApp, removeApp, openApp, launching,
     browserUrl, openBrowser: (u: string) => setBrowserUrl(u), closeBrowser: () => setBrowserUrl(null),
-    role, hidden, toggleHidden, restoreAll: () => persistHidden([]),
+    role, user, signOutNow: () => { signOut(); if (typeof window !== "undefined") window.location.reload(); },
+    hidden, toggleHidden, restoreAll: () => persistHidden([]),
       toasts, toast, chatRepoRequest, askAboutRepo, clearChatRequest: () => setChatRepoRequest(null),
     }),
     [apps, github, loading, syncing, replaceData, view, go, sheetId, accountOpen, installing, getApp, removeApp, openApp, launching, browserUrl, role, hidden, toggleHidden, persistHidden, toasts, toast, chatRepoRequest, askAboutRepo],

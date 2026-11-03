@@ -104,6 +104,10 @@ export default function ChatView() {
       const provider = readProvider();
       const apiKey = provider === "gemini" ? keys.gemini : provider === "openai" ? keys.openai : provider === "deepseek" ? keys.deepseek : "";
       const localServer = (keys.localServer || "").trim().replace(/\/$/, "");
+      let knowledge = "";
+      try {
+        knowledge = localStorage.getItem("nspace.build.knowledge.v1") ?? "";
+      } catch {}
       const repoPayload = repo ? { name: repo.name, branch: repo.meta.branch, language: repo.meta.language, liveUrl: repo.url } : null;
 
       if (localServer && provider === "local") {
@@ -111,7 +115,7 @@ export default function ChatView() {
           const local = await fetch(`${localServer}/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sessionId: sid, message: msg, provider: "local", repo: repoPayload }),
+            body: JSON.stringify({ sessionId: sid, message: msg, provider: "local", repo: repoPayload, knowledge }),
           });
           if (local.ok) {
             const ld = (await local.json()) as { assistantMessage?: { content?: string; blocks?: unknown[] } };

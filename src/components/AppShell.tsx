@@ -10,7 +10,7 @@ import TodayView from "@/components/views/TodayView";
 import CategoryView from "@/components/views/CategoryView";
 import SearchView from "@/components/views/SearchView";
 import GitHubView from "@/components/views/GitHubView";
-import ChatView from "@/components/chat/ChatView";
+import BuildView from "@/components/views/BuildView";
 import AppSheet from "@/components/sheets/AppSheet";
 import AccountModal from "@/components/sheets/AccountModal";
 import SettingsSheet from "@/components/sheets/SettingsSheet";
@@ -20,6 +20,7 @@ import Onboarding from "@/components/onboarding/Onboarding";
 function Screen() {
   const { view, loading } = useStore();
   const isChat = view === "ai";
+  const isFull = isChat;
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
@@ -33,7 +34,7 @@ function Screen() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className={isChat ? "h-full" : "mx-auto max-w-6xl px-4 pb-[calc(var(--safe-bottom)+6rem)] md:px-8 lg:pl-[120px]"}
+            className={isFull ? "h-full" : "mx-auto w-full max-w-6xl px-4 pb-[calc(var(--safe-bottom)+6.5rem)] md:px-8"}
           >
             {loading && !isChat ? (
               <div className="space-y-4 pt-8">
@@ -43,14 +44,14 @@ function Screen() {
               </div>
             ) : view === "today" ? (
               <TodayView />
-            ) : view === "games" || view === "apps" || view === "arcade" ? (
-              <CategoryView category={view} />
+            ) : view === "apps" ? (
+              <CategoryView category="apps" />
             ) : view === "search" ? (
               <SearchView />
             ) : view === "github" ? (
               <GitHubView />
             ) : (
-              <ChatView />
+              <BuildView />
             )}
           </motion.div>
         </AnimatePresence>

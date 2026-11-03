@@ -1,0 +1,15 @@
+{
+  "name": "N Space — Projects & AI",
+  "short_name": "N Space",
+  "description": "Your GitHub projects as a real iOS-style app store with a built-in AI build agent.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#0A84FF",
+  "icons": [
+    { "src": "/api/icon/N?c1=007AFF&c2=5AC8FA", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/api/icon/N?c1=007AFF&c2=5AC8FA", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/api/icon/N?c1=007AFF&c2=5AC8FA", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

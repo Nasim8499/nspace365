@@ -1,9 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Eye, EyeOff, KeyRound, Server, ShieldCheck, X } from "lucide-react";
+import { Check, KeyRound, Lock, LogOut, Server, ShieldCheck, Unlock, UserRound, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { PROVIDER_KEY, readKeys, readProvider, readRole, readTone, SETTINGS_KEY, writeTone, type KeyBag } from "@/components/onboarding/Onboarding";
+import { PROVIDER_KEY, readAdmin, readKeys, readProvider, readTone, SETTINGS_KEY, setAdmin, unlockAdmin, writeTone, type KeyBag } from "@/components/onboarding/Onboarding";
 import { useStore } from "@/components/store";
 
 type Provider = "local" | "gemini" | "openai" | "deepseek";
@@ -18,11 +18,13 @@ const FIELDS: { key: keyof KeyBag; label: string; hint: string; placeholder: str
 ];
 
 export default function SettingsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { role, hidden, restoreAll } = useStore();
+  const { role, user, signOutNow, apps } = useStore();
   const [tone, setTone] = useState<"concise" | "balanced" | "detailed">("balanced");
   const [bag, setBag] = useState<KeyBag>({ gemini: "", openai: "", deepseek: "", github1: "", github2: "", localServer: "" });
   const [provider, setProvider] = useState<Provider>("local");
-  const [reveal, setReveal] = useState<Record<string, boolean>>({});
+  const [admin, setAdminState] = useState(false);
+  const [pin, setPin] = useState("");
+  const [pinNote, setPinNote] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -30,6 +32,9 @@ export default function SettingsSheet({ open, onClose }: { open: boolean; onClos
     setBag(readKeys());
     setProvider(readProvider());
     setTone(readTone());
+    setAdminState(readAdmin());
+    setPin("");
+    setPinNote(null);
     setSaved(false);
   }, [open]);
 
@@ -98,19 +103,12 @@ export default function SettingsSheet({ open, onClose }: { open: boolean; onClos
                   </label>
                   <div className="flex items-center gap-2 rounded-[14px] border border-black/[0.06] bg-white/90 px-3">
                     <input
-                      type={reveal[f.key] ? "text" : "password"}
+                      type="password"
                       value={bag[f.key]}
                       onChange={(e) => setBag({ ...bag, [f.key]: e.target.value })}
                       placeholder={f.placeholder}
                       className="w-full bg-transparent py-2.5 text-[13px] outline-none placeholder:text-[#C7C7CC]"
                     />
-                    <button
-                      onClick={() => setReveal((r) => ({ ...r, [f.key]: !r[f.key] }))}
-                      className="text-[#8E8E93]"
-                      aria-label="Toggle visibility"
-                    >
-                      {reveal[f.key] ? <EyeOff size={14} /> : <Eye size={14} />}
-                    </button>
                   </div>
                 </div>
               ))}
@@ -133,19 +131,57 @@ export default function SettingsSheet({ open, onClose }: { open: boolean; onClos
                 ))}
               </div>
 
-              {role === "admin" && (
-                <div className="mb-4 rounded-[16px] border border-black/[0.06] bg-white/80 p-3">
-                  <p className="flex items-center gap-1.5 text-[12px] font-semibold text-[#1C1C1E]"><ShieldCheck size={13} /> Admin controls</p>
-                  <p className="mt-1 text-[11px] leading-snug text-[#8E8E93]">
-                    Hidden projects: {hidden.length}. Use the eye and trash buttons on any project to hide or remove it.
-                  </p>
-                  {hidden.length > 0 && (
-                    <button onClick={restoreAll} className="mt-2 rounded-full bg-[#007AFF] px-3 py-1.5 text-[11.5px] font-semibold text-white">
-                      Restore all projects
+              <div className="mb-4 rounded-[16px] border border-black/[0.06] bg-white/80 p-3">
+                <p className="flex items-center gap-1.5 text-[12px] font-semibold text-[#1C1C1E]">
+                  <UserRound size={13} /> Account
+                </p>
+                <p className="mt-1 truncate text-[11.5px] text-[#3C3C43]">
+                  {user ? `${user.name} · ${user.email}` : "Not signed in"}
+                  {user?.provider === "google" ? " · Google" : ""}
+                </p>
+
+                {admin ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <span className="flex items-center gap-1 rounded-full bg-[#34C759]/12 px-2.5 py-1 text-[11px] font-semibold text-[#1E8E3E]">
+                      <Unlock size={11} /> Admin unlocked · {apps.length} projects
+                    </span>
+                    <button onClick={() => { setAdmin(false); setAdminState(false); }} className="rounded-full bg-black/[0.06] px-2.5 py-1 text-[11px] font-semibold text-[#1C1C1E]">
+                      Lock
                     </button>
-                  )}
-                </div>
-              )}
+                    <button onClick={signOutNow} className="flex items-center gap-1 rounded-full bg-[#FF3B30]/10 px-2.5 py-1 text-[11px] font-semibold text-[#FF3B30]">
+                      <LogOut size={11} /> Sign out
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-2 flex items-center gap-1.5">
+                    <div className="flex flex-1 items-center gap-1.5 rounded-[12px] bg-[#F2F2F7] px-2.5">
+                      <Lock size={12} className="text-[#8E8E93]" />
+                      <input
+                        type="password"
+                        value={pin}
+                        onChange={(e) => setPin(e.target.value)}
+                        placeholder="Admin PIN"
+                        className="w-full bg-transparent py-2 text-[13px] outline-none"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (unlockAdmin(pin)) {
+                          setAdminState(true);
+                          setPinNote("Admin unlocked");
+                        } else {
+                          setPinNote("Wrong PIN");
+                        }
+                        setPin("");
+                      }}
+                      className="rounded-[12px] bg-[#0A84FF] px-3 py-2 text-[12px] font-semibold text-white"
+                    >
+                      Unlock
+                    </button>
+                  </div>
+                )}
+                {pinNote && <p className="mt-1.5 text-[11px] font-medium text-[#0A84FF]">{pinNote}</p>}
+              </div>
 
               <div className="mt-5 rounded-[16px] border border-black/[0.06] bg-[#F2F2F7]/70 p-3">
                 <p className="flex items-center gap-1.5 text-[12px] font-semibold text-[#1C1C1E]">
