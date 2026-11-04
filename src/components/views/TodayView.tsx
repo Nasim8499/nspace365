@@ -5,6 +5,7 @@ import { ArrowRight, GitBranch } from "lucide-react";
 import GithubMark from "@/components/ui/GithubMark";
 import { useEffect, useState } from "react";
 import { useStore } from "@/components/store";
+import HeroSlider from "@/components/ui/HeroSlider";
 import AppIcon from "@/components/ui/AppIcon";
 import AppRow from "@/components/ui/AppRow";
 import GetButton from "@/components/ui/GetButton";
@@ -31,6 +32,10 @@ export default function TodayView() {
   return (
     <div>
       <ViewHeader eyebrow={date || " "} title="Discover" />
+
+      <div className="mb-5">
+        <HeroSlider />
+      </div>
 
       <div className="grid gap-5 md:grid-cols-2">
         {lumen && (
@@ -74,7 +79,7 @@ export default function TodayView() {
                 <div className="flex items-center gap-3">
                   <AppIcon app={r} size={56} />
                   <div className="min-w-0">
-                    <p className="truncate text-[16px] font-semibold">{r.name}</p>
+                    <p className="line-clamp-2 break-words text-[16px] font-semibold leading-[1.2]">{r.name}</p>
                     <p className="flex items-center gap-1 text-[12px] text-[#8E8E93]">
                       <GitBranch size={12} /> {r.meta.branch}
                     </p>
@@ -91,21 +96,22 @@ export default function TodayView() {
       )}
 
       <SectionHeader title="Fresh from your repos" />
-      <div className="no-scrollbar -mx-4 mt-3 flex snap-x gap-4 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
-        {trending.map((a, i) => (
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
+        {trending.slice(0, 8).map((a, i) => (
           <motion.div
             key={a.id}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.24, ease: "easeOut", delay: Math.min(i * 0.04, 0.2) }}
+            transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1], delay: Math.min(i * 0.04, 0.24) }}
+            whileHover={{ y: -3 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => openSheet(a.id)}
-            className="w-[132px] shrink-0 cursor-pointer snap-start"
+            className="group cursor-pointer rounded-[24px] border border-black/5 bg-white p-2.5 shadow-[0_4px_18px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_12px_30px_rgba(0,0,0,0.10)]"
           >
-            <AppIcon app={a} size={132} className="!rounded-[30px]" />
-            <p className="mt-2 truncate text-[15px] font-semibold text-black">{a.name}</p>
-            <p className="truncate text-[12px] text-[#8E8E93]">{a.genre}</p>
-            <div className="mt-2">
+            <AppIcon app={a} size={160} className="!h-auto !w-full aspect-square !rounded-[20px]" />
+            <p className="mt-2 line-clamp-2 break-words text-[13.5px] font-semibold leading-[1.25] text-black">{a.name}</p>
+            <p className="truncate text-[11px] leading-snug text-[#8E8E93]">{a.genre}</p>
+            <div className="mt-1.5 flex justify-end">
               <GetButton app={a} />
             </div>
           </motion.div>
