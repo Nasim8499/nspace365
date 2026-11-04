@@ -13,6 +13,11 @@ import GetButton from "@/components/ui/GetButton";
 import HeroCard from "@/components/ui/HeroCard";
 import SectionHeader, { ViewHeader } from "@/components/ui/SectionHeader";
 
+/** Cards rendered in the "Your Projects" rail before it collapses into a "see all" tile.
+ *  The rail used to render every synced repo (162 cards / 44,000px wide), which made
+ *  first paint heavy on phones. */
+const RAIL_LIMIT = 10;
+
 export default function TodayView() {
   const { apps, github, go, openSheet } = useStore();
   const [date, setDate] = useState("");
@@ -29,6 +34,8 @@ export default function TodayView() {
   const topApps = repos.slice(8, 14);
   const games = apps.filter((a) => a.category === "games").slice(0, 3);
   const arcade = repos.slice(14, 17);
+  const rail = repos.slice(0, RAIL_LIMIT);
+  const railRest = Math.max(repos.length - rail.length, 0);
 
   return (
     <div>
@@ -43,7 +50,8 @@ export default function TodayView() {
       {/* GitHub CTA */}
       <motion.section
         initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-60px" }}
         transition={{ duration: 0.26, ease: "easeOut" }}
         className="relative mt-5 overflow-hidden rounded-3xl border border-black/5 bg-[#F2F2F7] p-6 sm:p-7"
       >
@@ -67,8 +75,17 @@ export default function TodayView() {
         <>
           <SectionHeader title="Your Projects" action="Manage" onAction={() => go("github")} />
           <div className="no-scrollbar -mx-4 mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:-mx-8 md:px-8">
-            {repos.map((r) => (
-              <div key={r.id} onClick={() => openSheet(r.id)} className="w-[260px] shrink-0 cursor-pointer snap-start rounded-3xl border border-black/5 bg-white p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_8px_28px_rgba(0,0,0,0.09)]">
+            {rail.map((r, i) => (
+              <motion.div
+                key={r.id}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.24, ease: "easeOut", delay: Math.min(i * 0.03, 0.15) }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => openSheet(r.id)}
+                className="w-[260px] shrink-0 cursor-pointer snap-start rounded-3xl border border-black/5 bg-white p-4 shadow-[0_4px_20px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_8px_28px_rgba(0,0,0,0.09)]"
+              >
                 <div className="flex items-center gap-3">
                   <AppIcon app={r} size={56} />
                   <div className="min-w-0">
@@ -82,8 +99,27 @@ export default function TodayView() {
                 <div className="mt-3 flex justify-end">
                   <GetButton app={r} />
                 </div>
-              </div>
+              </motion.div>
             ))}
+            {railRest > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-30px" }}
+                transition={{ duration: 0.24, ease: "easeOut", delay: 0.12 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => go("github")}
+                className="grid w-[164px] shrink-0 cursor-pointer snap-start place-items-center rounded-3xl border border-dashed border-black/10 bg-[#F2F2F7]/60 p-4 text-center"
+              >
+                <div>
+                  <p className="text-[22px] font-bold tracking-tight text-black">+{railRest}</p>
+                  <p className="mt-1 text-[13px] font-medium text-[#8E8E93]">more repos</p>
+                  <p className="mt-2 inline-flex items-center gap-1 text-[13px] font-semibold text-[#007AFF]">
+                    See all <ArrowRight size={14} />
+                  </p>
+                </div>
+              </motion.div>
+            )}
           </div>
         </>
       )}
@@ -94,7 +130,8 @@ export default function TodayView() {
           <motion.div
             key={a.id}
             initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-30px" }}
             transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1], delay: Math.min(i * 0.04, 0.24) }}
             whileHover={{ y: -3 }}
             whileTap={{ scale: 0.97 }}
@@ -112,7 +149,7 @@ export default function TodayView() {
       </div>
 
       <SectionHeader title="All Projects" action="See All" onAction={() => go("apps")} />
-      <div className="mt-1 grid gap-x-8 md:grid-cols-2">
+      <div className="mt-1 grid grid-cols-1 gap-x-8 md:grid-cols-2">
         {topApps.map((a, i) => (
           <AppRow key={a.id} app={a} rank={i + 1} index={i} divider={i < topApps.length - 1} />
         ))}

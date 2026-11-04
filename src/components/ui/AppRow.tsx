@@ -12,13 +12,15 @@ export default function AppRow({ app, rank, divider = true, index = 0 }: { app: 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.24, ease: "easeOut", delay: Math.min(index * 0.03, 0.18) }}
+      whileTap={{ scale: 0.99 }}
       role="button"
       tabIndex={0}
       onClick={() => (direct ? openApp(app) : openSheet(app.id))}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (direct ? openApp(app) : openSheet(app.id))}
-      className="group relative flex cursor-pointer items-center gap-2.5 rounded-2xl py-2.5 sm:gap-3 outline-none transition-colors hover:bg-black/[0.025] focus-visible:ring-2 focus-visible:ring-[#007AFF]/40"
+      className="group relative flex min-w-0 cursor-pointer items-center gap-2.5 rounded-2xl py-2.5 sm:gap-3 outline-none transition-colors hover:bg-black/[0.025] focus-visible:ring-2 focus-visible:ring-[#007AFF]/40"
     >
       {rank !== undefined && <span className="w-5 shrink-0 text-center text-[17px] font-semibold text-[#1C1C1E]">{rank}</span>}
       <AppIcon app={app} size={56} className="sm:h-[60px] sm:w-[60px]" />
