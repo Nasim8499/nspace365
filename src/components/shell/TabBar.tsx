@@ -19,7 +19,7 @@ export default function TabBar({ onOpenKeys }: { onOpenKeys: () => void }) {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-3 z-40 mx-auto flex max-w-md items-center justify-between rounded-[30px] border border-black/5 bg-white/70 p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl backdrop-saturate-150 lg:inset-x-auto lg:left-5 lg:top-1/2 lg:mx-0 lg:w-[84px] lg:max-w-none lg:-translate-y-1/2 lg:flex-col lg:gap-1 lg:rounded-[34px] lg:p-2"
+      className="pointer-events-auto absolute inset-x-3 z-40 mx-auto flex max-w-md items-center justify-between rounded-[30px] border border-black/5 bg-white/70 p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.06)] backdrop-blur-xl backdrop-saturate-150 lg:inset-x-auto lg:left-5 lg:top-1/2 lg:mx-0 lg:w-[84px] lg:max-w-none lg:-translate-y-1/2 lg:flex-col lg:gap-1 lg:rounded-[34px] lg:p-2"
       style={{ bottom: "calc(var(--safe-bottom) + 12px)" }}
     >
       {tabs.map((t) => {

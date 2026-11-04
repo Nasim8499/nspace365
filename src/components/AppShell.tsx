@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StoreProvider, useStore } from "@/components/store";
 import TopBar from "@/components/shell/TopBar";
 import TabBar from "@/components/shell/TabBar";
@@ -22,18 +22,27 @@ function Screen() {
   const isChat = view === "ai";
   const isFull = isChat;
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const scrollRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = 0;
+  }, [view]);
 
   return (
-    <div className="flex flex-col overflow-hidden bg-white" style={{ height: "100dvh", minHeight: "100dvh" }}>
+    <div className="relative flex h-full flex-col overflow-hidden bg-white" style={{ height: "100%" }}>
       <TopBar onOpenSettings={() => setSettingsOpen(true)} />
-      <main className={`relative min-h-0 flex-1 scroll-smooth ${isChat ? "overflow-hidden" : "overflow-y-auto overscroll-y-contain"}`}>
+      <main
+        ref={scrollRef}
+        className={`relative min-h-0 flex-1 ${isChat ? "overflow-hidden" : "app-scroll"}`}
+      >
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={view}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.16, ease: "easeOut" }}
             className={isFull ? "h-full" : "mx-auto w-full max-w-6xl px-4 pb-[calc(var(--safe-bottom)+6.5rem)] md:px-8"}
           >
             {loading && !isChat ? (
