@@ -9,7 +9,14 @@ export const metadata: Metadata = {
   applicationName: "N Space",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "N Space", statusBarStyle: "default" },
-  icons: { icon: "/api/icon/N?c1=007AFF&c2=5AC8FA", apple: "/api/icon/N?c1=007AFF&c2=5AC8FA" },
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    // iOS ignores SVG for the home-screen icon; it needs a real PNG.
+    apple: [{ url: "/apple-touch-icon-180.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export const viewport: Viewport = {
