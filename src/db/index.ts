@@ -1,21 +1,30 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
-}
-
 const globalForDb = globalThis as typeof globalThis & {
   __arenaNextJsPostgresqlPool?: Pool;
 };
 
+/**
+ * Never throw (and never connect) at import time.
+ *
+ * `next build` collects page data for every route, which imports this module.
+ * Throwing here when DATABASE_URL is missing fails the entire deployment with
+ * "BUILD_UTILS_SPAWN_1: Command \"next build\" exited with 1" and leaves the
+ * live site on an old build. A build must succeed without a database; the pool
+ * stays inert until a query actually runs, and then fails fast.
+ */
+const databaseUrl = process.env.DATABASE_URL;
+
+export const hasDatabase = Boolean(databaseUrl);
+
 export const pool =
   globalForDb.__arenaNextJsPostgresqlPool ??
-  new Pool({
-    connectionString: databaseUrl,
-  });
+  new Pool(
+    databaseUrl
+      ? { connectionString: databaseUrl }
+      : { connectionTimeoutMillis: 1, max: 1 },
+  );
 
 if (process.env.NODE_ENV !== "production") {
   globalForDb.__arenaNextJsPostgresqlPool = pool;

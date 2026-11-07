@@ -65,7 +65,7 @@ export default function SearchView() {
             ))}
           </div>
           <SectionHeader title="Discover" />
-          <div className="mt-1 grid gap-x-8 md:grid-cols-2">
+          <div className="mt-1 grid grid-cols-1 gap-x-8 md:grid-cols-2">
             {discover.map((a, i) => (
               <AppRow key={a.id} app={a} index={i} />
             ))}
@@ -78,7 +78,7 @@ export default function SearchView() {
           <p className="text-[15px] text-[#8E8E93]">Check the spelling or try a new search.</p>
         </motion.div>
       ) : (
-        <div className="mt-1 grid gap-x-8 md:grid-cols-2">
+        <div className="mt-1 grid grid-cols-1 gap-x-8 md:grid-cols-2">
           {results.map((a, i) => (
             <AppRow key={a.id} app={a} index={i} />
           ))}

@@ -137,7 +137,7 @@ export default function GitHubView() {
           )}
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
+        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
           <label className="block">
             <span className="mb-1.5 flex items-center gap-1.5 text-[13px] font-medium text-[#8E8E93]">
               <KeyRound size={13} /> Personal Access Token
@@ -247,7 +247,7 @@ export default function GitHubView() {
           <p className="mt-1 max-w-sm text-[14px] text-[#8E8E93]">Sync a token, a username (e.g. <span className="font-mono">vercel</span>) or an <span className="font-mono">owner/repo</span> to turn repositories into App Store listings.</p>
         </div>
       ) : (
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
           {repos.map((r, i) => (
             <RepoCard key={r.id} repo={r} index={i} onOpen={() => openSheet(r.id)} onAsk={() => askAboutRepo(r.id)} onLive={() => openApp(r)} />
           ))}

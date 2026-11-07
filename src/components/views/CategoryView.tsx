@@ -51,7 +51,7 @@ export default function CategoryView({ category }: { category: Exclude<Category,
         })}
       </div>
 
-      <div key={genre} className="mt-2 grid gap-x-8 md:grid-cols-2">
+      <div key={genre} className="mt-2 grid grid-cols-1 gap-x-8 md:grid-cols-2">
         {shown.map((a, i) => (
           <AppRow key={a.id} app={a} rank={i + 1} index={i} divider={i < shown.length - (shown.length % 2 === 0 ? 2 : 1) || true} />
         ))}
@@ -60,7 +60,7 @@ export default function CategoryView({ category }: { category: Exclude<Category,
       {category === "apps" && (
         <>
           <SectionHeader title="Developer Projects" action="Sync" onAction={() => go("github")} />
-          <div className="mt-1 grid gap-x-8 md:grid-cols-2">
+          <div className="mt-1 grid grid-cols-1 gap-x-8 md:grid-cols-2">
             {devItems.map((a, i) => (
               <AppRow key={a.id} app={a} index={i} divider />
             ))}
