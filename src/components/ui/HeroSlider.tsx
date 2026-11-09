@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore, type View } from "@/components/store";
@@ -134,78 +134,163 @@ export default function HeroSlider() {
   const { go } = useStore();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [hidden, setHidden] = useState(false);
+  const reduce = useReducedMotion();
 
-  const next = useCallback(() => setIndex((i) => (i + 1) % SLIDES.length), []);
-  const prev = useCallback(() => setIndex((i) => (i - 1 + SLIDES.length) % SLIDES.length), []);
+  const DURATION = 5200;
+  const count = SLIDES.length;
+  const next = useCallback(() => setIndex((i) => (i + 1) % count), [count]);
+  const prev = useCallback(() => setIndex((i) => (i - 1 + count) % count), [count]);
 
   useEffect(() => {
-    if (paused) return;
-    timer.current = setInterval(next, 4600);
-    return () => {
-      if (timer.current) clearInterval(timer.current);
-    };
-  }, [next, paused, index]);
+    const onVis = () => setHidden(document.hidden);
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+
+  useEffect(() => {
+    if (paused || hidden || reduce) return;
+    const t = setTimeout(next, DURATION);
+    return () => clearTimeout(t);
+  }, [index, paused, hidden, reduce, next]);
 
   const slide = SLIDES[index];
+  const stamp = String(index + 1).padStart(2, "0");
+  const total = String(count).padStart(2, "0");
 
   return (
-    <section
+    <motion.section
       aria-label="Featured platforms"
-      className="relative overflow-hidden rounded-[28px] bg-[#0B0B0F] shadow-[0_18px_50px_rgba(11,11,15,0.28)]"
+      aria-roledescription="carousel"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowRight") next();
+        if (e.key === "ArrowLeft") prev();
+      }}
+      drag={reduce ? false : "x"}
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.12}
+      onDragEnd={(_, info) => {
+        if (info.offset.x < -56) next();
+        else if (info.offset.x > 56) prev();
+      }}
+      onPointerDown={() => setPaused(true)}
+      onPointerUp={() => setPaused(false)}
+      onPointerCancel={() => setPaused(false)}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
-      onTouchStart={() => setPaused(true)}
-      onTouchEnd={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+      style={{ touchAction: "pan-y" }}
+      className="relative isolate cursor-grab overflow-hidden rounded-[30px] bg-[#08080C] ring-1 ring-white/10 outline-none focus-visible:ring-2 focus-visible:ring-white/40 active:cursor-grabbing"
     >
-      <div className="relative h-[248px] sm:h-[286px]">
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute -inset-16 -z-10 rounded-full opacity-60 blur-[64px]"
+        animate={{ backgroundColor: slide.tint }}
+        transition={{ duration: 0.9, ease: "easeOut" }}
+      />
+
+      <div className="relative h-[266px] sm:h-[300px]">
         <AnimatePresence initial={false}>
           <motion.div
             key={slide.id}
             className="absolute inset-0"
-            initial={{ opacity: 0, scale: 1.06 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.02 }}
-            transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduce ? 0 : 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={slide.image} alt="" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/20" />
-            <div className="absolute inset-0" style={{ background: `radial-gradient(120% 90% at 82% 8%, ${slide.tint}55 0%, transparent 62%)` }} />
+            <motion.div
+              className="absolute inset-0"
+              initial={reduce ? false : { scale: 1.1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: reduce ? 0 : 7, ease: "linear" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={slide.image} alt="" className="h-full w-full object-cover" />
+            </motion.div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/10" />
+            <div
+              className="absolute inset-0"
+              style={{ background: `radial-gradient(130% 95% at 84% 4%, ${slide.tint}66 0%, transparent 60%)` }}
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(120%_80%_at_0%_100%,rgba(0,0,0,0.72),transparent_55%)]" />
           </motion.div>
         </AnimatePresence>
 
         <div className="relative flex h-full flex-col justify-between p-5 sm:p-6">
-          <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-[11px] bg-white/15 text-white ring-1 ring-white/25 backdrop-blur-md">
-              <BrandLogo kind={slide.logo} size={18} />
-            </span>
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold leading-tight text-white">{slide.brand}</p>
-              <p className="text-[10.5px] uppercase tracking-[0.16em] text-white/60">connected platform</p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5 rounded-full bg-white/10 py-1.5 pl-1.5 pr-3.5 ring-1 ring-inset ring-white/20 backdrop-blur-md">
+              <span
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]"
+                style={{ backgroundColor: `${slide.tint}D9` }}
+              >
+                <BrandLogo kind={slide.logo} size={16} />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-[12.5px] font-semibold leading-tight text-white">{slide.brand}</span>
+                <span className="flex items-center gap-1 text-[9.5px] font-medium uppercase leading-tight tracking-[0.14em] text-white/60">
+                  <span className="inline-block h-1 w-1 rounded-full bg-emerald-400" />
+                  connected
+                </span>
+              </span>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1.5">
+              <span className="mr-0.5 font-mono text-[11px] tabular-nums tracking-tight text-white/55">
+                {stamp}
+                <span className="text-white/30">/{total}</span>
+              </span>
+              <button
+                type="button"
+                onClick={prev}
+                aria-label="Previous platform"
+                className="grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white ring-1 ring-inset ring-white/20 backdrop-blur-md transition-transform active:scale-95 sm:h-9 sm:w-9"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={next}
+                aria-label="Next platform"
+                className="grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white ring-1 ring-inset ring-white/20 backdrop-blur-md transition-transform active:scale-95 sm:h-9 sm:w-9"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
             </div>
           </div>
 
           <div className="flex items-end justify-between gap-3">
-            <div className="min-w-0">
+            <div className="min-w-0" aria-live="polite">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={slide.id + "-text"}
-                  initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+                  initial={reduce ? false : { opacity: 0, y: 16, filter: "blur(8px)" }}
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  exit={reduce ? { opacity: 1 } : { opacity: 0, y: -12, filter: "blur(8px)" }}
+                  transition={{ duration: reduce ? 0 : 0.55, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <h2 className="whitespace-pre-line text-[26px] font-bold leading-[1.08] tracking-tight text-white sm:text-[32px]">{slide.headline}</h2>
-                  <p className="mt-1.5 max-w-[260px] text-[12.5px] leading-snug text-white/70">{slide.sub}</p>
+                  <h2 className="whitespace-pre-line bg-gradient-to-b from-white via-white to-white/80 bg-clip-text text-[27px] font-bold leading-[1.05] tracking-[-0.035em] text-transparent sm:text-[33px]">
+                    {slide.headline}
+                  </h2>
+                  <p className="mt-1.5 max-w-[255px] text-[12.5px] leading-snug text-white/75">{slide.sub}</p>
                 </motion.div>
               </AnimatePresence>
+
               <motion.button
+                type="button"
                 whileTap={{ scale: 0.96 }}
                 onClick={() => go(slide.view)}
-                className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-[12.5px] font-semibold text-[#0B0B0F] shadow-[0_6px_18px_rgba(0,0,0,0.25)]"
+                className="mt-3.5 inline-flex h-11 items-center gap-1.5 rounded-full bg-white px-4 text-[13px] font-semibold text-[#08080C]"
+                style={{ boxShadow: `0 12px 30px -10px ${slide.tint}` }}
               >
-                {slide.cta} <ArrowUpRight size={14} />
+                {slide.cta}
+                <ArrowUpRight size={15} strokeWidth={2.6} />
               </motion.button>
             </div>
 
@@ -213,9 +298,13 @@ export default function HeroSlider() {
               {SLIDES.map((s, i) => (
                 <button
                   key={s.id}
+                  type="button"
                   onClick={() => setIndex(i)}
                   aria-label={s.brand}
-                  className={`grid h-7 w-7 place-items-center rounded-full ring-1 transition-all ${i === index ? "bg-white text-[#0B0B0F] ring-white" : "bg-white/10 text-white/70 ring-white/25 hover:bg-white/20"}`}
+                  aria-current={i === index}
+                  className={`grid h-7 w-7 place-items-center rounded-full ring-1 transition-all ${
+                    i === index ? "bg-white text-[#08080C] ring-white" : "bg-white/10 text-white/70 ring-white/25 hover:bg-white/20"
+                  }`}
                 >
                   <BrandLogo kind={s.logo} size={13} />
                 </button>
@@ -224,35 +313,35 @@ export default function HeroSlider() {
           </div>
         </div>
 
-        {/* progress */}
         <div className="absolute inset-x-0 bottom-0 flex gap-1 px-5 pb-2.5 sm:px-6">
           {SLIDES.map((s, i) => (
-            <span key={s.id} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/25">
-              {i === index && (
-                <motion.span
-                  key={`${slide.id}-bar`}
-                  className="block h-full rounded-full bg-white"
-                  initial={{ width: "0%" }}
-                  animate={{ width: paused ? "35%" : "100%" }}
-                  transition={{ duration: paused ? 0.3 : 4.6, ease: "linear" }}
-                />
-              )}
-            </span>
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setIndex(i)}
+              aria-label={`Go to ${s.brand}`}
+              className="flex-1 py-2"
+            >
+              <span className="block h-[3px] overflow-hidden rounded-full bg-white/25">
+                {i === index && (
+                  <span
+                    key={`${slide.id}-bar`}
+                    className="block h-full rounded-full bg-white"
+                    style={
+                      reduce
+                        ? { width: "100%" }
+                        : {
+                            animation: `nspaceSlideFill ${DURATION}ms linear forwards`,
+                            animationPlayState: paused || hidden ? "paused" : "running",
+                          }
+                    }
+                  />
+                )}
+              </span>
+            </button>
           ))}
         </div>
       </div>
-
-      {/* swipe layer */}
-      <motion.div
-        className="absolute inset-0 z-10"
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.14}
-        onDragEnd={(_, info) => {
-          if (info.offset.x < -60) next();
-          else if (info.offset.x > 60) prev();
-        }}
-      />
-    </section>
+    </motion.section>
   );
 }
